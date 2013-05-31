@@ -13,7 +13,7 @@ Google style guide into appropriate Doxygen tags, and is even aware of
 doctests.
 """
 
-from ast import NodeVisitor, parse, iter_fields, AST, Name
+from ast import NodeVisitor, parse, iter_fields, AST, Name, get_docstring
 from re import compile as regexpCompile, IGNORECASE
 from types import GeneratorType
 from sys import stderr
@@ -330,7 +330,7 @@ class AstWalker(NodeVisitor):
         """
         if self.options.debug:
             print >> stderr, "# Module"
-        if self.options.autobrief:
+        if self.options.autobrief and get_docstring(node):
             self.__processDocstring(node)
         # Visit any contained nodes (in this case pretty much everything).
         self.generic_visit(node, containingNodes=kwargs.get('containingNodes', []))
@@ -415,8 +415,8 @@ class AstWalker(NodeVisitor):
         # (starts with '_').
         if node.name.startswith('_'):
             contextTag = '{0}\n# @private'.format(contextTag)
-        if self.options.autobrief:
-            self.__processDocstring(node, '@namespace "{0}"\n# @fn "{1}"'.format(contextTag,
+        if self.options.autobrief and get_docstring(node):
+            self.__processDocstring(node, '@namespace {0}\n# @fn {1}'.format(contextTag,
                                     contextTag[contextTag.rfind('.') + 1:]))
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=containingNodes)
@@ -449,21 +449,21 @@ class AstWalker(NodeVisitor):
         # interface definitions.
         match = AstWalker.__interfaceRE.match(self.lines[lineNum])
         if match:
-            contextTag = '@namespace "{0}"\n# @interface "{1}"'.format(
+            contextTag = '@namespace {0}\n# @interface {1}'.format(
                 '.'.join(pathTuple[0] for pathTuple in fullPathNamespace), match.group(1))
             if self.options.debug:
                 print >> stderr, "# Interface {0.name}".format(node)
         else:
             contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
-            contextTag = '@namespace "{0}"\n# @class "{1}"'.format(contextTag,
-                                                                   contextTag[contextTag.rfind('.') + 1:])
+            contextTag = '@namespace {0}\n# @class {1}'.format(contextTag,
+                                                               contextTag[contextTag.rfind('.') + 1:])
             if self.options.debug:
                 print >> stderr, "# Class {0.name}".format(node)
         # Handle both Python-mangled names (starts with '__') and bed lumps
         # (starts with '_').
         if node.name.startswith('_'):
             contextTag = '{0}\n# @private'.format(contextTag)
-        if self.options.autobrief:
+        if self.options.autobrief and get_docstring(node):
             self.__processDocstring(node, contextTag)
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=containingNodes)
