@@ -50,7 +50,7 @@ class AstWalker(NodeVisitor):
     __docstrOneLineRE = regexpCompile(r"\s*[uUbB]*[rR]*(['\"]{3})(.+)\1")
 
     __implementsRE = regexpCompile(r"^\s*(?:zope\.)?(?:interface\.)?"
-                                   r"(?:module|class|directly)*"
+                                   r"(?:module|class|directly)?"
                                    r"(?:Provides|Implements)\(\s*(.+)\s*\)",
                                    IGNORECASE)
     __interfaceRE = regexpCompile(r"^\s*class\s+(\S+)\s*\(\s*(?:zope\.)?"
@@ -68,11 +68,11 @@ class AstWalker(NodeVisitor):
         ' @version: ': regexpCompile(r"^(\s*Version:?\s*)(.*)$", IGNORECASE)
     }
     __argsStartRE = regexpCompile(r"^(\s*(?:Keyword\s+)?(?:A|Kwa)rg(?:ument)?s?\s*:\s*)$", IGNORECASE)
-    __argsRE = regexpCompile(r"^\s*(?P<name>[\w*]+)\s*(?P<type>\(*\S*\)*)*(?:--|:)+"
+    __argsRE = regexpCompile(r"^\s*(?P<name>\w+)\s*(?P<type>\(?\S*\)?)?\s*(?:-|:)+"
                              r"\s+(?P<desc>.+)$")
     __returnsStartRE = regexpCompile(r"^\s*(?:Return|Yield)s:\s*$", IGNORECASE)
     __raisesStartRE = regexpCompile(r"^\s*Raises:\s*$", IGNORECASE)
-    __listRE = regexpCompile(r"^\s*(([\w\.]+),\s*)+&*\s*([\w\.]+)$")
+    __listRE = regexpCompile(r"^\s*(([\w\.]+),\s*)+&?\s*([\w\.]+)$")
     __listItemRE = regexpCompile(r'([\w\.]+),?\s*')
     __examplesStartRE = regexpCompile(r"^\s*Examples?:\s*$", IGNORECASE)
     __reqsStartRE = regexpCompile(r"^(\s*Requirements:?\s*)(.*)$", IGNORECASE)
@@ -262,6 +262,15 @@ class AstWalker(NodeVisitor):
                 docstringConverter.send(lineInfo)
             docstringConverter.send((len(self.docLines) - 1, None))
 
+        # Add a Doxygen @brief tag to any single-line description.
+        while len(self.docLines) > 0 and self.docLines[0].lstrip('#').strip() == '':
+            del self.docLines[0]
+            self.docLines.append('')
+        if len(self.docLines) == 1 or (
+           len(self.docLines) >= 2 and (self.docLines[1][3:].strip() == '' or
+                                        self.docLines[1][3:].lstrip().startswith('@'))):
+            self.docLines[0] = "## @brief {0}".format(self.docLines[0].lstrip('#'))
+
         # For classes and functions, apply our changes and reverse the
         # order of the declaration and docstring, and for modules just
         # apply our changes.
@@ -269,16 +278,6 @@ class AstWalker(NodeVisitor):
             self.lines[startLineNum: endLineNum] = self.docLines + defLines
         else:
             self.lines[startLineNum: endLineNum] = defLines + self.docLines
-
-        # Add a Doxygen @brief tag to any single-line description.
-        while len(self.docLines) > 0 and self.docLines[0][2:].strip() == '':
-            del self.docLines[0]
-        if len(self.docLines) == 1 or (
-           len(self.docLines) >= 2 and (self.docLines[1][3:].strip() == '' or
-                                        self.docLines[1][3:].lstrip().startswith('@'))):
-            self.lines[docstringStart
-                       ] = "{0} @brief {1}".format(self.docLines[0][:2].rstrip(),
-                                                   self.docLines[0][2:])
 
     def generic_visit(self, node, **kwargs):
         """
@@ -500,17 +499,17 @@ def main():
 
         parser.set_usage("%prog [options] filename")
         parser.add_option(
-            "--autobrief",
+            "-a", "--autobrief",
             action="store_true", dest="autobrief",
-            help="use the docstring summary line as \\brief description"
+            help="parse the docstring for @brief description and other information"
         )
         parser.add_option(
-            "--debug",
+            "-d", "--debug",
             action="store_true", dest="debug",
             help="enable debug output on stderr"
         )
         parser.add_option(
-            "--ns",
+            "-n", "--ns",
             action="store", type="string", dest="topLevelNamespace",
             help="specify a top-level namespace that will be used to trim paths"
         )
