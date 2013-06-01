@@ -5,9 +5,9 @@ A more Pythonic version of doxypy, a Doxygen filter for Python.
 
 ## Intent
 
-[Doxygen](http://www.stack.nl/~dimitri/doxygen/) has limited support for Python.
-It recognizes Python comments, but otherwise treats the language as being more
-or less like Java.  It doesn't understand basic Python syntax constructs like
+For now [Doxygen](http://www.stack.nl/~dimitri/doxygen/) has limited support for
+Python.  It recognizes Python comments, but otherwise treats the language as being
+more or less like Java.  It doesn't understand basic Python syntax constructs like
 docstrings, keyword arguments, generators, nested functions, decorators, or
 lambda expressions.  It likewise doesn't understand conventional constructs like
 doctests or ZOPE-style interfaces.  It does however support inline filters that
@@ -31,6 +31,11 @@ Doxygen best understands this concept via its notion of namespaces.  This filter
 thus can supply Doxygen tags marking namespaces on every function and class.
 This addresses the issue of Doxygen merging inner functions' documentation with
 the documentation of the parent.
+
+Python class members whose names begin with a double-underscore are mangled
+and kept private by the language.  Doxygen does not understand this natively
+yet, so this filter additionally provides Doxygen tags to label such variables
+as private.
 
 Python frequently embeds doctests within docstrings.  This filter makes it
 trivial to mark off such sections of the docstring so they get displayed as
