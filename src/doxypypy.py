@@ -480,7 +480,7 @@ def main():
     Starts the parser on the file given by the filename as the first
     argument on the command line.
     """
-    from optparse import OptionParser
+    from optparse import OptionParser, OptionGroup
     from os import sep
     from os.path import basename
     from sys import argv, exit as sysExit
@@ -504,15 +504,17 @@ def main():
             help="parse the docstring for @brief description and other information"
         )
         parser.add_option(
-            "-d", "--debug",
-            action="store_true", dest="debug",
-            help="enable debug output on stderr"
-        )
-        parser.add_option(
             "-n", "--ns",
             action="store", type="string", dest="topLevelNamespace",
             help="specify a top-level namespace that will be used to trim paths"
         )
+        group = OptionGroup(parser, "Debug Options")
+        group.add_option(
+            "-d", "--debug",
+            action="store_true", dest="debug",
+            help="enable debug output on stderr"
+        )
+        parser.add_option_group(group)
 
         ## Parse options based on our definition.
         (options, filename) = parser.parse_args()
