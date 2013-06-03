@@ -17,6 +17,7 @@ from ast import NodeVisitor, parse, iter_fields, AST, Name, get_docstring
 from re import compile as regexpCompile, IGNORECASE
 from types import GeneratorType
 from sys import stderr
+from os import linesep
 
 
 def coroutine(func):
@@ -85,7 +86,7 @@ class AstWalker(NodeVisitor):
         self.docLines = []
 
     @staticmethod
-    def __stripOutAnds(inStr):
+    def _stripOutAnds(inStr):
         """Takes a string and returns the same without ands or ampersands."""
         assert isinstance(inStr, str)
         return inStr.replace(' and ', ' ').replace(' & ', ' ')
@@ -154,7 +155,7 @@ class AstWalker(NodeVisitor):
                                 if match and not inCodeBlock:
                                     # We've got a list of something or another
                                     itemList = []
-                                    for itemMatch in AstWalker.__listItemRE.findall(self.__stripOutAnds(
+                                    for itemMatch in AstWalker.__listItemRE.findall(self._stripOutAnds(
                                                                                     match.group(0))):
                                         itemList.append('# {0}\t{1}\n'.format(prefix, itemMatch))
                                     line = ''.join(itemList)
@@ -213,7 +214,7 @@ class AstWalker(NodeVisitor):
             # Substitute the new block of lines for the original block of lines.
             self.docLines[firstLineNum: lastLineNum + 1] = lines
 
-    def __processDocstring(self, node, tail=''):
+    def _processDocstring(self, node, tail=''):
         """
         Handles a docstring for functions, classes, and modules.
 
@@ -310,7 +311,7 @@ class AstWalker(NodeVisitor):
         visitor = getattr(self, method, self.generic_visit)
         return visitor(node, containingNodes=containingNodes)
 
-    def __getFullPathName(self, containingNodes):
+    def _getFullPathName(self, containingNodes):
         """
         Returns the full node hierarchy rooted at module name.
 
@@ -330,7 +331,7 @@ class AstWalker(NodeVisitor):
         if self.options.debug:
             print >> stderr, "# Module"
         if self.options.autobrief and get_docstring(node):
-            self.__processDocstring(node)
+            self._processDocstring(node)
         # Visit any contained nodes (in this case pretty much everything).
         self.generic_visit(node, containingNodes=kwargs.get('containingNodes', []))
 
@@ -399,7 +400,7 @@ class AstWalker(NodeVisitor):
         # is nested within a function.
         containingNodes = kwargs.get('containingNodes', []) or []
         containingNodes.append((node.name, 'function'))
-        fullPathNamespace = self.__getFullPathName(containingNodes)
+        fullPathNamespace = self._getFullPathName(containingNodes)
         parentType = fullPathNamespace[-2][1]
         lineNum = node.lineno - 1
         # Taking away a docstring from an interface method definition usually
@@ -415,7 +416,7 @@ class AstWalker(NodeVisitor):
         if node.name.startswith('_'):
             contextTag = '{0}\n# @private'.format(contextTag)
         if self.options.autobrief and get_docstring(node):
-            self.__processDocstring(node, '@namespace {0}\n# @fn {1}'.format(contextTag,
+            self._processDocstring(node, '@namespace {0}\n# @fn {1}'.format(contextTag,
                                     contextTag[contextTag.rfind('.') + 1:]))
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=containingNodes)
@@ -443,7 +444,7 @@ class AstWalker(NodeVisitor):
             containingNodes.append((node.name, 'interface'))
         else:
             containingNodes.append((node.name, 'class'))
-        fullPathNamespace = self.__getFullPathName(containingNodes)
+        fullPathNamespace = self._getFullPathName(containingNodes)
         # Class definitions have one Doxygen-significant special case:
         # interface definitions.
         match = AstWalker.__interfaceRE.match(self.lines[lineNum])
@@ -463,16 +464,21 @@ class AstWalker(NodeVisitor):
         if node.name.startswith('_'):
             contextTag = '{0}\n# @private'.format(contextTag)
         if self.options.autobrief and get_docstring(node):
-            self.__processDocstring(node, contextTag)
+            self._processDocstring(node, contextTag)
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=containingNodes)
         # Remove the item we pushed onto the containing nodes hierarchy.
         containingNodes.pop()
 
-    def printLines(self):
-        """Print out the modified file once processing has been completed."""
-        for line in self.lines:
-            print line.rstrip()
+    def parseLines(self):
+        """Form an AST for the code and produce a new version of the source."""
+        inAst = parse(''.join(self.lines), self.inFilename)
+        # Visit all the nodes in our tree and apply Doxygen tags to the source.
+        self.visit(inAst)
+
+    def getLines(self):
+        """Return the modified file once processing has been completed."""
+        return linesep.join(line.rstrip() for line in self.lines)
 
 
 def main():
@@ -545,11 +551,9 @@ def main():
     inFile.close()
     # Create the abstract syntax tree for the input file.
     astWalker = AstWalker(lines, options, inFilename)
-    inAst = parse(''.join(lines), inFilename)
-    # Visit all the nodes in our tree and apply Doxygen tags to the source.
-    astWalker.visit(inAst)
+    astWalker.parseLines()
     # Output the modified source.
-    astWalker.printLines()
+    print astWalker.getLines()
 
 # See if we're running as a script.
 if __name__ == "__main__":
