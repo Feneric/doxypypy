@@ -15,17 +15,22 @@ class TestDoxypypy(unittest.TestCase):
     """
 
     __Options = namedtuple('Options', 'autobrief debug fullPathNamespace')
+    __dummySrc = [
+        "print 'testing: one, two, three, & four' " + linesep,
+        "print 'is five.'\t" + linesep
+    ]
+    __strippedDummySrc = linesep.join([
+        "print 'testing: one, two, three, & four'",
+        "print 'is five.'"
+    ])
 
     def setUp(self):
         """
         Sets up a temporary AST for use with our unit tests.
         """
-        self.dummySrc = [
-            "print 'testing: one, two, three, & four' ",
-            "print 'is five.'"
-        ]
         options = TestDoxypypy.__Options(True, False, 'dummy')
-        self.dummyWalker = AstWalker(self.dummySrc, options, 'dummy.py')
+        self.dummyWalker = AstWalker(TestDoxypypy.__dummySrc,
+                                     options, 'dummy.py')
 
     def test_stripOutAnds(self):
         """
@@ -53,10 +58,17 @@ class TestDoxypypy(unittest.TestCase):
         """
         Test the getLines method.
         """
-        self.assertEqual(self.dummyWalker.getLines(), linesep.join([
-            "print 'testing: one, two, three, & four'",
-            "print 'is five.'"
-        ]))
+        self.assertEqual(self.dummyWalker.getLines(),
+                         TestDoxypypy.__strippedDummySrc)
+
+    def test_parseLines(self):
+        """
+        Test the parseLines method.
+        """
+        # For our sample data parseLines doesn't change anything.
+        self.dummyWalker.parseLines()
+        self.assertEqual(self.dummyWalker.getLines(),
+                         TestDoxypypy.__strippedDummySrc)
 
     @staticmethod
     def readAndParseFile(inFilename, options):

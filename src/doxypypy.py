@@ -225,7 +225,6 @@ class AstWalker(NodeVisitor):
         # Modules don't have lineno defined, but it's always 0 for them.
         curLineNum = startLineNum = 0
         if typeName != 'Module':
-            #curLineNum = node.lineno
             startLineNum = curLineNum = node.lineno - 1
         # Figure out where both our enclosing object and our docstring start.
         line = ''
@@ -417,7 +416,7 @@ class AstWalker(NodeVisitor):
             contextTag = '{0}\n# @private'.format(contextTag)
         if self.options.autobrief and get_docstring(node):
             self._processDocstring(node, '@namespace {0}\n# @fn {1}'.format(contextTag,
-                                    contextTag[contextTag.rfind('.') + 1:]))
+                                   contextTag[contextTag.rfind('.') + 1:]))
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=containingNodes)
         # Remove the item we pushed onto the containing nodes hierarchy.
