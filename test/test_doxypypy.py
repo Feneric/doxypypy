@@ -4,7 +4,7 @@ Tests the doxypypy filter.
 """
 import unittest
 from collections import namedtuple
-from src.doxypypy import AstWalker
+from doxypypy import AstWalker
 from os.path import basename, splitext
 from os import linesep
 
