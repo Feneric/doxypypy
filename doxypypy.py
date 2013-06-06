@@ -412,8 +412,11 @@ class AstWalker(NodeVisitor):
         contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
         # Handle both Python-mangled names (starts with '__') and bed lumps
         # (starts with '_').
-        if node.name.startswith('_'):
-            contextTag = '{0}\n# @private'.format(contextTag)
+        if not node.name.endswith('__'):
+            if node.name.startswith('__'):
+                contextTag = '{0}\n# @private'.format(contextTag)
+            elif node.name.startswith('_'):
+                contextTag = '{0}\n# @protected'.format(contextTag)
         if self.options.autobrief and get_docstring(node):
             self._processDocstring(node, '@namespace {0}\n# @fn {1}'.format(contextTag,
                                    contextTag[contextTag.rfind('.') + 1:]))
