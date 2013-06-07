@@ -47,6 +47,22 @@ class TestDoxypypy(unittest.TestCase):
         for pair in testPairs.items():
             self.assertEqual(self.dummyWalker._stripOutAnds(pair[0]), pair[1])
 
+    def test_checkMemberName(self):
+        """
+        Test the checkMemberName method.
+        """
+        testPairs = {
+            'public': None,
+            '_protected': 'protected',
+            '_stillProtected_': 'protected',
+            '__private': 'private',
+            '__stillPrivate_': 'private',
+            '__notPrivate__': None
+        }
+        for pair in testPairs.items():
+            self.assertEqual(self.dummyWalker._checkMemberName(pair[0]),
+                             pair[1])
+
     def test_getFullPathName(self):
         """
         Test the getFullPathName method.
@@ -85,11 +101,13 @@ class TestDoxypypy(unittest.TestCase):
         # Output the modified source.
         return testWalker.getLines()
 
-    def compareAgainstGoldStandard(self, inFilename, options):
+    def compareAgainstGoldStandard(self, inFilename):
         """
         Read and process the input file and compare its output against the gold
         standard.
         """
+        inFilenameBase = splitext(basename(inFilename))[0]
+        options = TestDoxypypy.__Options(True, False, inFilenameBase)
         output = self.readAndParseFile(inFilename, options)
         goldFilename = splitext(inFilename)[0] + '.out.py'
         goldFile = open(goldFilename)
@@ -100,14 +118,27 @@ class TestDoxypypy(unittest.TestCase):
         goldContent = linesep.join(line.rstrip() for line in goldContentLines)
         self.assertEqual(output, goldContent)
 
-    def test_pep(self):
+    def test_pepProcessing(self):
         """
         Test the basic example included in PEP 257.
         """
         sampleName = 'test/sample_complex.py'
-        sampleNameBase = splitext(basename(sampleName))[0]
-        options = TestDoxypypy.__Options(True, False, sampleNameBase)
-        self.compareAgainstGoldStandard(sampleName, options)
+        self.compareAgainstGoldStandard(sampleName)
+
+    def test_privacyProcessing(self):
+        """
+        Test an example with different combinations of public, protected, and
+        private.
+        """
+        sampleName = 'test/sample_privacy.py'
+        self.compareAgainstGoldStandard(sampleName)
+
+    def test_interfaceProcessing(self):
+        """
+        Test an example with ZOPE style interfaces.
+        """
+        sampleName = 'test/sample_interfaces.py'
+        self.compareAgainstGoldStandard(sampleName)
 
 
 if __name__ == '__main__':

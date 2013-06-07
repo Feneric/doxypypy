@@ -214,7 +214,7 @@ class AstWalker(NodeVisitor):
             # Substitute the new block of lines for the original block of lines.
             self.docLines[firstLineNum: lastLineNum + 1] = lines
 
-    def _processDocstring(self, node, tail=''):
+    def _processDocstring(self, node, tail='', **kwargs):
         """
         Handles a docstring for functions, classes, and modules.
 
@@ -271,6 +271,18 @@ class AstWalker(NodeVisitor):
                                         self.docLines[1][3:].lstrip().startswith('@'))):
             self.docLines[0] = "## @brief {0}".format(self.docLines[0].lstrip('#'))
 
+        # Taking away a docstring from an interface method definition sometimes
+        # leaves broken code as the docstring may be the only code in it.
+        # Here we manually insert a pass statement to rectify this problem.
+        if typeName != 'Module':
+            containingNodes = kwargs.get('containingNodes', []) or []
+            fullPathNamespace = self._getFullPathName(containingNodes)
+            parentType = fullPathNamespace[-2][1]
+            match = AstWalker.__indentRE.match(self.lines[docstringStart])
+            if parentType == 'interface' and typeName == 'FunctionDef' \
+               or fullPathNamespace[-1][1] == 'interface':
+                defLines[-1] = '{0}\n{1}pass'.format(defLines[-1], match.group(1))
+
         # For classes and functions, apply our changes and reverse the
         # order of the declaration and docstring, and for modules just
         # apply our changes.
@@ -278,6 +290,39 @@ class AstWalker(NodeVisitor):
             self.lines[startLineNum: endLineNum] = self.docLines + defLines
         else:
             self.lines[startLineNum: endLineNum] = defLines + self.docLines
+
+    @staticmethod
+    def _checkMemberName(name):
+        """
+        See if a member name indicates that it should be private.
+
+        Private variables in Python (starting with a double underscore but
+        not ending in a double underscore) and bed lumps (variables that
+        are not really private but are by common convention treated as
+        protected because they begin with a single underscore) get Doxygen
+        tags labeling them appropriately.
+        """
+        restrictionLevel = None
+        if not name.endswith('__'):
+            if name.startswith('__'):
+                restrictionLevel = 'private'
+            elif name.startswith('_'):
+                restrictionLevel = 'protected'
+        return restrictionLevel
+
+    def _processMembers(self, node, contextTag):
+        """
+        Mark up members if they should be private.
+
+        If the name indicates it should be private or protected, apply
+        the appropriate Doxygen tags.
+        """
+        restrictionLevel = self._checkMemberName(node.name)
+        if restrictionLevel:
+            workTag = '{0}\n# @{1}'.format(contextTag, restrictionLevel)
+        else:
+            workTag = contextTag
+        return workTag
 
     def generic_visit(self, node, **kwargs):
         """
@@ -354,11 +399,12 @@ class AstWalker(NodeVisitor):
                                                                      self.lines[lineNum].rstrip())
             if self.options.debug:
                 print >> stderr, "# Attribute {0.id}".format(node.targets[0])
-        # Handle both Python-mangled names (starts with '__') and bed lumps
-        # (starts with '_').
-        if isinstance(node.targets[0], Name) and node.targets[0].id.startswith('_'):
-            self.lines[lineNum] = '## @var {0}\n# @hideinitializer\n' \
-                                  '# @private\n{1}\n'.format(node.targets[0].id,
+        if isinstance(node.targets[0], Name):
+            restrictionLevel = self._checkMemberName(node.targets[0].id)
+            if restrictionLevel:
+                self.lines[lineNum] = '## @var {0}\n# @hideinitializer\n' \
+                                      '# @{1}\n{2}\n'.format(node.targets[0].id,
+                                                             restrictionLevel,
                                                              self.lines[lineNum].rstrip())
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=kwargs['containingNodes'])
@@ -400,26 +446,11 @@ class AstWalker(NodeVisitor):
         containingNodes = kwargs.get('containingNodes', []) or []
         containingNodes.append((node.name, 'function'))
         fullPathNamespace = self._getFullPathName(containingNodes)
-        parentType = fullPathNamespace[-2][1]
-        lineNum = node.lineno - 1
-        # Taking away a docstring from an interface method definition usually
-        # leaves broken code as the docstring is typically the only code in it.
-        # Here we manually insert a pass statement to rectify this problem.
-        match = AstWalker.__indentRE.match(self.lines[lineNum + 1])
-        if parentType == 'interface':
-            self.lines[lineNum] = '{0}\n{1}pass'.format(self.lines[lineNum],
-                                                        match.group(1))
         contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
-        # Handle both Python-mangled names (starts with '__') and bed lumps
-        # (starts with '_').
-        if not node.name.endswith('__'):
-            if node.name.startswith('__'):
-                contextTag = '{0}\n# @private'.format(contextTag)
-            elif node.name.startswith('_'):
-                contextTag = '{0}\n# @protected'.format(contextTag)
+        modifiedContextTag = self._processMembers(node, contextTag)
         if self.options.autobrief and get_docstring(node):
-            self._processDocstring(node, '@namespace {0}\n# @fn {1}'.format(contextTag,
-                                   contextTag[contextTag.rfind('.') + 1:]))
+            self._processDocstring(node, '@namespace {0}\n# @fn {1}'.format(modifiedContextTag,
+                                   contextTag[contextTag.rfind('.') + 1:]), containingNodes=containingNodes)
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=containingNodes)
         # Remove the item we pushed onto the containing nodes hierarchy.
@@ -461,12 +492,9 @@ class AstWalker(NodeVisitor):
                                                                contextTag[contextTag.rfind('.') + 1:])
             if self.options.debug:
                 print >> stderr, "# Class {0.name}".format(node)
-        # Handle both Python-mangled names (starts with '__') and bed lumps
-        # (starts with '_').
-        if node.name.startswith('_'):
-            contextTag = '{0}\n# @private'.format(contextTag)
+        contextTag = self._processMembers(node, contextTag)
         if self.options.autobrief and get_docstring(node):
-            self._processDocstring(node, contextTag)
+            self._processDocstring(node, contextTag, containingNodes=containingNodes)
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=containingNodes)
         # Remove the item we pushed onto the containing nodes hierarchy.
