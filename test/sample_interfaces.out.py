@@ -37,9 +37,9 @@ class IUnu(Interface):
 
     pass
 
-## @brief The first method offered for the first interface.
-# @namespace sample_interfaces.IUnu.unuMethod
-# @fn unuMethod
+    ## @brief The first method offered for the first interface.
+    # @namespace sample_interfaces.IUnu.unuMethod
+    # @fn unuMethod
     def unuMethod(unuArg, *args):
 
         pass
@@ -57,16 +57,16 @@ class IDu(Interface):
 
     pass
 
-## @brief The first method offered for the second interface.
-# @namespace sample_interfaces.IDu.duMethod
-# @fn duMethod
+    ## @brief The first method offered for the second interface.
+    # @namespace sample_interfaces.IDu.duMethod
+    # @fn duMethod
     def duMethod(duArg1, duArg2):
 
         pass
 
-## @brief The second method offered for the second interface.
-# @namespace sample_interfaces.IDu.duMethod2
-# @fn duMethod2
+    ## @brief The second method offered for the second interface.
+    # @namespace sample_interfaces.IDu.duMethod2
+    # @fn duMethod2
     def duMethod2(duArg1, **kwargs):
 
         pass
@@ -84,9 +84,9 @@ class ITri(Interface):
 
     pass
 
-## @property triAttr
-# the first attribute for the third interface
-# @hideinitializer
+    ## @property triAttr
+    # the first attribute for the third interface
+    # @hideinitializer
     triAttr = Attribute('the first attribute for the third interface')
 
 
@@ -102,14 +102,14 @@ class IKvar(Interface):
 
     pass
 
-## @property kvarAttr1
-# the first attribute for the fourth interface
-# @hideinitializer
+    ## @property kvarAttr1
+    # the first attribute for the fourth interface
+    # @hideinitializer
     kvarAttr1 = Attribute('the first attribute for the fourth interface')
 
-## @property kvarAttr2
-# the second attribute for the fourth interface
-# @hideinitializer
+    ## @property kvarAttr2
+    # the second attribute for the fourth interface
+    # @hideinitializer
     kvarAttr2 = Attribute('the second attribute for the fourth interface')
 
 
@@ -126,38 +126,38 @@ class IKvin(Interface):
 
     pass
 
-## @property kvinAttr1
-# the first attribute for the fifth interface
-# @hideinitializer
+    ## @property kvinAttr1
+    # the first attribute for the fifth interface
+    # @hideinitializer
     kvinAttr1 = Attribute('the first attribute for the fifth interface')
 
-## @property kvinAttr2
-# the second attribute for the fifth interface
-# @hideinitializer
+    ## @property kvinAttr2
+    # the second attribute for the fifth interface
+    # @hideinitializer
     kvinAttr2 = Attribute('the second attribute for the fifth interface')
 
-## @brief The first method offered for the fifth interface.
-# @namespace sample_interfaces.IKvin.kvinMethod
-# @fn kvinMethod
+    ## @brief The first method offered for the fifth interface.
+    # @namespace sample_interfaces.IKvin.kvinMethod
+    # @fn kvinMethod
     def kvinMethod(kvinArg1, kvinArg2, *args, **kwargs):
 
         pass
 
-## @brief The second method offered for the fifth interface.
-# @namespace sample_interfaces.IKvin.kvinMethod2
-# @fn kvinMethod2
+    ## @brief The second method offered for the fifth interface.
+    # @namespace sample_interfaces.IKvin.kvinMethod2
+    # @fn kvinMethod2
     def kvinMethod2(kvinArg1, kvinArg2='default'):
 
         pass
 
-## @property kvinAttr3
-# the third attribute for the fifth interface
-# @hideinitializer
+    ## @property kvinAttr3
+    # the third attribute for the fifth interface
+    # @hideinitializer
     kvinAttr3 = Attribute('the third attribute for the fifth interface')
 
-## @brief The third method offered for the fifth interface.
-# @namespace sample_interfaces.IKvin.kvinMethod3
-# @fn kvinMethod3
+    ## @brief The third method offered for the fifth interface.
+    # @namespace sample_interfaces.IKvin.kvinMethod3
+    # @fn kvinMethod3
     def kvinMethod3(kvinArg1, kvinArg2='default'):
 
         pass

@@ -68,7 +68,7 @@ class NewStyleSample(object):
         """
         This will be public.
         """
-        self.public = 0
+        public = 0
         __notPrivateAttr__ = 1
         __privateAttr = 2
         _protectedAttr = 3

@@ -133,6 +133,13 @@ class TestDoxypypy(unittest.TestCase):
         sampleName = 'test/sample_privacy.py'
         self.compareAgainstGoldStandard(sampleName)
 
+    def test_docExampleProcessing(self):
+        """
+        Test the basic example used in the doxypypy docs.
+        """
+        sampleName = 'test/sample_docexample.py'
+        self.compareAgainstGoldStandard(sampleName)
+
     def test_interfaceProcessing(self):
         """
         Test an example with ZOPE style interfaces.

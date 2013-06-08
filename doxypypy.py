@@ -14,7 +14,7 @@ doctests.
 """
 
 from ast import NodeVisitor, parse, iter_fields, AST, Name, get_docstring
-from re import compile as regexpCompile, IGNORECASE
+from re import compile as regexpCompile, IGNORECASE, MULTILINE
 from types import GeneratorType
 from sys import stderr
 from os import linesep
@@ -47,17 +47,18 @@ class AstWalker(NodeVisitor):
     # vary across instances and so are compiled directly in the class
     # definition.
     __indentRE = regexpCompile(r'^(\s*)')
+    __newlineRE = regexpCompile(r'^#', MULTILINE)
     __docstrMarkerRE = regexpCompile(r"\s*([uUbB]*[rR]*['\"]{3})")
     __docstrOneLineRE = regexpCompile(r"\s*[uUbB]*[rR]*(['\"]{3})(.+)\1")
 
-    __implementsRE = regexpCompile(r"^\s*(?:zope\.)?(?:interface\.)?"
+    __implementsRE = regexpCompile(r"^(\s*)(?:zope\.)?(?:interface\.)?"
                                    r"(?:module|class|directly)?"
                                    r"(?:Provides|Implements)\(\s*(.+)\s*\)",
                                    IGNORECASE)
     __interfaceRE = regexpCompile(r"^\s*class\s+(\S+)\s*\(\s*(?:zope\.)?"
                                   r"(?:interface\.)?"
                                   r"Interface\s*\)\s*:", IGNORECASE)
-    __attributeRE = regexpCompile(r"^\s*(\S+)\s*=\s*(?:zope\.)?(?:interface\.)?"
+    __attributeRE = regexpCompile(r"^(\s*)(\S+)\s*=\s*(?:zope\.)?(?:interface\.)?"
                                   r"Attribute\s*\(['\"]{1,3}(.*)['\"]{1,3}\)",
                                   IGNORECASE)
 
@@ -271,17 +272,26 @@ class AstWalker(NodeVisitor):
                                         self.docLines[1][3:].lstrip().startswith('@'))):
             self.docLines[0] = "## @brief {0}".format(self.docLines[0].lstrip('#'))
 
+        if defLines:
+            match = AstWalker.__indentRE.match(defLines[0])
+            self.docLines = [AstWalker.__newlineRE.sub(match.group(1) + '#', docLine)
+                             for docLine in self.docLines]
+
         # Taking away a docstring from an interface method definition sometimes
         # leaves broken code as the docstring may be the only code in it.
         # Here we manually insert a pass statement to rectify this problem.
         if typeName != 'Module':
+            if docstringStart < len(self.lines):
+                match = AstWalker.__indentRE.match(self.lines[docstringStart])
+                indentStr = match.group(1)
+            else:
+                indentStr = ''
             containingNodes = kwargs.get('containingNodes', []) or []
             fullPathNamespace = self._getFullPathName(containingNodes)
             parentType = fullPathNamespace[-2][1]
-            match = AstWalker.__indentRE.match(self.lines[docstringStart])
             if parentType == 'interface' and typeName == 'FunctionDef' \
                or fullPathNamespace[-1][1] == 'interface':
-                defLines[-1] = '{0}\n{1}pass'.format(defLines[-1], match.group(1))
+                defLines[-1] = '{0}\n{1}pass'.format(defLines[-1], indentStr)
 
         # For classes and functions, apply our changes and reverse the
         # order of the declaration and docstring, and for modules just
@@ -393,19 +403,22 @@ class AstWalker(NodeVisitor):
         # Assignments have one Doxygen-significant special case:  interface attributes.
         match = AstWalker.__attributeRE.match(self.lines[lineNum])
         if match:
-            self.lines[lineNum] = '## @property {0}\n# {1}\n' \
-                                  '# @hideinitializer\n{2}\n'.format(match.group(1),
-                                                                     match.group(2),
-                                                                     self.lines[lineNum].rstrip())
+            self.lines[lineNum] = '{0}## @property {1}\n{0}# {2}\n' \
+                                  '{0}# @hideinitializer\n{3}\n'.format(match.group(1),
+                                                                        match.group(2),
+                                                                        match.group(3),
+                                                                        self.lines[lineNum].rstrip())
             if self.options.debug:
                 print >> stderr, "# Attribute {0.id}".format(node.targets[0])
         if isinstance(node.targets[0], Name):
+            match = AstWalker.__indentRE.match(self.lines[lineNum])
             restrictionLevel = self._checkMemberName(node.targets[0].id)
             if restrictionLevel:
-                self.lines[lineNum] = '## @var {0}\n# @hideinitializer\n' \
-                                      '# @{1}\n{2}\n'.format(node.targets[0].id,
-                                                             restrictionLevel,
-                                                             self.lines[lineNum].rstrip())
+                self.lines[lineNum] = '{0}## @var {1}\n{0}# @hideinitializer\n' \
+                                      '{0}# @{2}\n{3}\n'.format(match.group(1),
+                                                                node.targets[0].id,
+                                                                restrictionLevel,
+                                                                self.lines[lineNum].rstrip())
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=kwargs['containingNodes'])
 
@@ -422,8 +435,8 @@ class AstWalker(NodeVisitor):
         # implementations.
         match = AstWalker.__implementsRE.match(self.lines[lineNum])
         if match:
-            self.lines[lineNum] = '## @implements {0}\n{1}\n'.format(match.group(1),
-                                                                     self.lines[lineNum].rstrip())
+            self.lines[lineNum] = '{0}## @implements {1}\n{0}{2}\n'.format(
+                match.group(1), match.group(2), self.lines[lineNum].rstrip())
             if self.options.debug:
                 print >> stderr, "# Implements {0}".format(match.group(1))
         # Visit any contained nodes.
@@ -449,8 +462,10 @@ class AstWalker(NodeVisitor):
         contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
         modifiedContextTag = self._processMembers(node, contextTag)
         if self.options.autobrief and get_docstring(node):
-            self._processDocstring(node, '@namespace {0}\n# @fn {1}'.format(modifiedContextTag,
-                                   contextTag[contextTag.rfind('.') + 1:]), containingNodes=containingNodes)
+            self._processDocstring(node, '@namespace {0}\n# @fn {1}'.format(
+                                   modifiedContextTag,
+                                   contextTag[contextTag.rfind('.') + 1:]),
+                                   containingNodes=containingNodes)
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=containingNodes)
         # Remove the item we pushed onto the containing nodes hierarchy.
@@ -488,8 +503,8 @@ class AstWalker(NodeVisitor):
                 print >> stderr, "# Interface {0.name}".format(node)
         else:
             contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
-            contextTag = '@namespace {0}\n# @class {1}'.format(contextTag,
-                                                               contextTag[contextTag.rfind('.') + 1:])
+            contextTag = '@namespace {0}\n# @class {1}'.format(
+                contextTag, contextTag[contextTag.rfind('.') + 1:])
             if self.options.debug:
                 print >> stderr, "# Class {0.name}".format(node)
         contextTag = self._processMembers(node, contextTag)
