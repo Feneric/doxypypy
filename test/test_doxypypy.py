@@ -47,6 +47,20 @@ class TestDoxypypy(unittest.TestCase):
         for pair in testPairs.items():
             self.assertEqual(self.dummyWalker._stripOutAnds(pair[0]), pair[1])
 
+    def test_endCodeIfNeeded(self):
+        """
+        Test the endCodeIfNeeded method.
+        """
+        testPairs = {
+            ('unu', False): ('unu', False),
+            ('du', True): ('# @endcode' + linesep + 'du', False),
+            ('tri kvar', True): ('# @endcode' + linesep + 'tri kvar', False),
+            ('kvin  \t', True): ('# @endcode' + linesep + 'kvin', False)
+        }
+        for pair in testPairs.items():
+            self.assertEqual(self.dummyWalker._endCodeIfNeeded(*pair[0]),
+                             pair[1])
+
     def test_checkMemberName(self):
         """
         Test the checkMemberName method.
@@ -131,6 +145,13 @@ class TestDoxypypy(unittest.TestCase):
         private.
         """
         sampleName = 'test/sample_privacy.py'
+        self.compareAgainstGoldStandard(sampleName)
+
+    def test_googleProcessing(self):
+        """
+        Test the examples in the Google Python Style Guide.
+        """
+        sampleName = 'test/sample_google.py'
         self.compareAgainstGoldStandard(sampleName)
 
     def test_docExampleProcessing(self):

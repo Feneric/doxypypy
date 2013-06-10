@@ -69,14 +69,15 @@ class AstWalker(NodeVisitor):
         ' @file ': regexpCompile(r"^(\s*File:?\s*)(.*)$", IGNORECASE),
         ' @version: ': regexpCompile(r"^(\s*Version:?\s*)(.*)$", IGNORECASE)
     }
-    __argsStartRE = regexpCompile(r"^(\s*(?:Keyword\s+)?(?:A|Kwa)rg(?:ument)?s?\s*:\s*)$", IGNORECASE)
+    __argsStartRE = regexpCompile(r"^(\s*(?:(?:Keyword\s+)?(?:A|Kwa)rg(?:ument)?|Attribute)s?\s*:\s*)$",
+                                  IGNORECASE)
     __argsRE = regexpCompile(r"^\s*(?P<name>\w+)\s*(?P<type>\(?\S*\)?)?\s*(?:-|:)+"
                              r"\s+(?P<desc>.+)$")
     __returnsStartRE = regexpCompile(r"^\s*(?:Return|Yield)s:\s*$", IGNORECASE)
     __raisesStartRE = regexpCompile(r"^\s*Raises:\s*$", IGNORECASE)
     __listRE = regexpCompile(r"^\s*(([\w\.]+),\s*)+&?\s*([\w\.]+)$")
     __listItemRE = regexpCompile(r'([\w\.]+),?\s*')
-    __examplesStartRE = regexpCompile(r"^\s*Examples?:\s*$", IGNORECASE)
+    __examplesStartRE = regexpCompile(r"^\s*(?:Example|Doctest)s?:\s*$", IGNORECASE)
     __reqsStartRE = regexpCompile(r"^(\s*Requirements:?\s*)(.*)$", IGNORECASE)
 
     def __init__(self, lines, options, inFilename):
@@ -91,6 +92,14 @@ class AstWalker(NodeVisitor):
         """Takes a string and returns the same without ands or ampersands."""
         assert isinstance(inStr, str)
         return inStr.replace(' and ', ' ').replace(' & ', ' ')
+
+    @staticmethod
+    def _endCodeIfNeeded(line, inCodeBlock):
+        """Simple routine to append end code marker if needed."""
+        if inCodeBlock:
+            line = '# @endcode{0}{1}'.format(linesep, line.rstrip())
+            inCodeBlock = False
+        return line, inCodeBlock
 
     @coroutine
     def __alterDocstring(self, tail='', writer=None):
@@ -117,9 +126,7 @@ class AstWalker(NodeVisitor):
                     match = tagRE.search(line)
                     if match:
                         # We've got a simple one-line Doxygen command
-                        if inCodeBlock:
-                            lines[-1] = '# @endcode'
-                            inCodeBlock = False
+                        lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1], inCodeBlock)
                         writer.send((firstLineNum, lineNum - 1, lines))
                         lines = []
                         firstLineNum = lineNum
@@ -137,6 +144,7 @@ class AstWalker(NodeVisitor):
                         # We've got an "arguments" section
                         line = line.replace(match.group(0), '').rstrip()
                         prefix = '@param\t'
+                        lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1], inCodeBlock)
                         continue
                     else:
                         match = AstWalker.__argsRE.match(line)
@@ -150,6 +158,7 @@ class AstWalker(NodeVisitor):
                                 # We've got an "exceptions" section
                                 line = line.replace(match.group(0), '').rstrip()
                                 prefix = '@exception\t'
+                                lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1], inCodeBlock)
                                 continue
                             else:
                                 match = AstWalker.__listRE.match(line)
@@ -162,7 +171,7 @@ class AstWalker(NodeVisitor):
                                     line = ''.join(itemList)
                                 else:
                                     match = AstWalker.__examplesStartRE.match(line)
-                                    if match:
+                                    if match and lines[-1].strip() == '#':
                                         # We've got an "example" section
                                         inCodeBlock = True
                                         line = line.replace(match.group(0), ' @b Examples\n# @code')
@@ -191,9 +200,7 @@ class AstWalker(NodeVisitor):
                 timeToSend = True
 
             if timeToSend:
-                if inCodeBlock:
-                    lines[-1] = '# @endcode\n{0}'.format(lines[-1].rstrip())
-                    inCodeBlock = False
+                lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1], inCodeBlock)
                 writer.send((firstLineNum, lineNum, lines))
                 lines = []
                 firstLineNum = -1
