@@ -13,7 +13,7 @@ lambda expressions.  It likewise doesn't understand conventional constructs like
 doctests or ZOPE-style interfaces.  It does however support inline filters that
 can be used to make input source code a little more like what it's expecting.
 
-The excellent [doxypy](https://github.com/0xCAFEBABE/doxypy) makes it possible
+The excellent [doxypy](https://github.com/Feneric/doxypy) makes it possible
 to embed Doxygen commands in Python docstrings, and have those docstrings
 converted to Doxygen-recognized comments on the fly per Doxygen's regular
 input filtering process.  It however does not address any of the other
@@ -124,3 +124,6 @@ and items and descriptions may be separated by either colons or dashes.
 
 4.  Everything thrown into an examples section will be treated as code, so it's
 the perfect place for doctests.
+
+Additional more comprehensive examples can be found in the test area.
+
