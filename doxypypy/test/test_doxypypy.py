@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 Tests the doxypypy filter.
+
+These tests may all be executed by running "setup.py test".
 """
 import unittest
 from collections import namedtuple
-from doxypypy import AstWalker
+from ..doxypypy import AstWalker
 from os.path import basename, splitext
 from os import linesep
 
@@ -136,7 +138,7 @@ class TestDoxypypy(unittest.TestCase):
         """
         Test the basic example included in PEP 257.
         """
-        sampleName = 'test/sample_complex.py'
+        sampleName = 'doxypypy/test/sample_complex.py'
         self.compareAgainstGoldStandard(sampleName)
 
     def test_privacyProcessing(self):
@@ -144,28 +146,28 @@ class TestDoxypypy(unittest.TestCase):
         Test an example with different combinations of public, protected, and
         private.
         """
-        sampleName = 'test/sample_privacy.py'
+        sampleName = 'doxypypy/test/sample_privacy.py'
         self.compareAgainstGoldStandard(sampleName)
 
     def test_googleProcessing(self):
         """
         Test the examples in the Google Python Style Guide.
         """
-        sampleName = 'test/sample_google.py'
+        sampleName = 'doxypypy/test/sample_google.py'
         self.compareAgainstGoldStandard(sampleName)
 
     def test_docExampleProcessing(self):
         """
         Test the basic example used in the doxypypy docs.
         """
-        sampleName = 'test/sample_docexample.py'
+        sampleName = 'doxypypy/test/sample_docexample.py'
         self.compareAgainstGoldStandard(sampleName)
 
     def test_interfaceProcessing(self):
         """
         Test an example with ZOPE style interfaces.
         """
-        sampleName = 'test/sample_interfaces.py'
+        sampleName = 'doxypypy/test/sample_interfaces.py'
         self.compareAgainstGoldStandard(sampleName)
 
 
