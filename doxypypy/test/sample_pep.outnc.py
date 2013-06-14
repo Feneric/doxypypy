@@ -8,15 +8,7 @@
 
 
 
-# @endcode
-# @endcode
-# @endcode
-# @code
-# @code
-##
-# @code
-# @code
-#    Does nothing more than demonstrate syntax.
+## @brief     Does nothing more than demonstrate syntax.
 #
 #    This is an example of how a Pythonic human-readable docstring can
 #    get parsed by doxypypy and marked up with Doxygen commands as a
@@ -27,7 +19,6 @@
 #
 # @param		kwarg	A keyword argument.
 #
-# @endcode
 # @return
 #        A string holding the result.
 #
@@ -35,14 +26,13 @@
 # @exception		AssertionError
 # @exception		ValueError.
 #
-# @b Examples
-# @code
+#    Examples:
 #        >>> myfunction(2, 3)
 #        '5 - 0, whatever.'
 #        >>> myfunction(5, 0, 'oops.')
 #        Traceback (most recent call last):
 #            ...
-#        ZeroDivisionError: integer division or modulo by zero
+# @exception		ZeroDivisionError	integer division or modulo by zero
 #        >>> myfunction(4, 1, 'got it.')
 #        '5 - 4, got it.'
 #        >>> myfunction(23.5, 23, 'oh well.')
@@ -53,10 +43,10 @@
 #        Traceback (most recent call last):
 #            ...
 #        ValueError
-# @endcode
 #
 # @namespace sample_docexample.myfunction
 # @fn myfunction
+
 
 
 

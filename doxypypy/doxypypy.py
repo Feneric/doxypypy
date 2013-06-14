@@ -18,6 +18,7 @@ from re import compile as regexpCompile, IGNORECASE, MULTILINE
 from types import GeneratorType
 from sys import stderr
 from os import linesep
+from codeop import compile_command
 
 
 def coroutine(func):
@@ -79,6 +80,7 @@ class AstWalker(NodeVisitor):
     __listItemRE = regexpCompile(r'([\w\.]+),?\s*')
     __examplesStartRE = regexpCompile(r"^\s*(?:Example|Doctest)s?:\s*$", IGNORECASE)
     __reqsStartRE = regexpCompile(r"^(\s*Requirements:?\s*)(.*)$", IGNORECASE)
+    __errorLineRE = regexpCompile(r"^(\s*\w+Error):?\s*(.*)$", IGNORECASE)
 
     def __init__(self, lines, options, inFilename):
         """Initialize a few class variables in preparation for our walk."""
@@ -102,6 +104,49 @@ class AstWalker(NodeVisitor):
         return line, inCodeBlock
 
     @coroutine
+    def _checkIfCode(self, inCodeBlock):
+        """Checks whether or not a given line appears to be Python code."""
+        while True:
+            line, lines = (yield)
+            lineNum = 0
+            match = AstWalker.__errorLineRE.match(line)
+            testLine = line.strip()
+            lineOfCode = None
+            while lineOfCode is None:
+                if not testLine or testLine == '...' or match:
+                    # These are ambiguous.
+                    line, lines = (yield)
+                    testLine += linesep + line.strip()
+                    lineNum += 1
+                elif testLine.startswith('>>> '):
+                    # This is definitely code.
+                    lineOfCode = True
+                else:
+                    try:
+                        compLine = compile_command(testLine)
+                        if compLine:
+                            lineOfCode = True
+                        else:
+                            line, lines = (yield)
+                            testLine += linesep + line.strip()
+                            lineNum += 1
+                    except SyntaxError:
+                        # This is definitely not code.
+                        lineOfCode = False
+                    except:
+                        # Other errors are ambiguous.
+                        line, lines = (yield)
+                        testLine += linesep + line.strip()
+                        lineNum += 1
+            if not inCodeBlock and lineOfCode:
+                inCodeBlock = True
+                lines[1 - lineNum] = '# @code{0}{1}'.format(linesep, lines[1 - lineNum])
+            elif inCodeBlock and lineOfCode is False:
+                # None is ambiguous, so strict checking
+                # against False is necessary.
+                lines[-lineNum], inCodeBlock = self._endCodeIfNeeded(lines[-lineNum], inCodeBlock)
+
+    @coroutine
     def __alterDocstring(self, tail='', writer=None):
         """
         Runs eternally, processing docstring lines.
@@ -116,6 +161,8 @@ class AstWalker(NodeVisitor):
         inCodeBlock = False
         prefix = ''
         firstLineNum = -1
+        codeChecker = self._checkIfCode(False)
+        proseChecker = self._checkIfCode(True)
         while True:
             lineNum, line = (yield)
             if firstLineNum < 0:
@@ -171,16 +218,20 @@ class AstWalker(NodeVisitor):
                                     line = ''.join(itemList)
                                 else:
                                     match = AstWalker.__examplesStartRE.match(line)
-                                    if match and lines[-1].strip() == '#':
+                                    if match and lines[-1].strip() == '#' and self.options.autocode:
                                         # We've got an "example" section
                                         inCodeBlock = True
-                                        line = line.replace(match.group(0), ' @b Examples\n# @code')
+                                        line = line.replace(match.group(0), ' @b Examples{0}# @code'.format(linesep))
                                     else:
                                         match = AstWalker.__reqsStartRE.match(line)
                                         if match:
                                             # We've got a requirements section
                                             prefix = ''
-                                            line = line.replace(match.group(0), ' @b Requirements\n# ')
+                                            line = line.replace(match.group(0), ' @b Requirements{0}# '.format(linesep))
+                                        elif self.options.autocode and inCodeBlock:
+                                            lineOfCode = proseChecker.send((line, lines))
+                                        elif self.options.autocode:
+                                            lineOfCode = codeChecker.send((line, lines))
 
                 # If we were passed a tail, append it to the docstring.
                 # Note that this means that we need a docstring for this
@@ -560,6 +611,11 @@ def main():
             "-a", "--autobrief",
             action="store_true", dest="autobrief",
             help="parse the docstring for @brief description and other information"
+        )
+        parser.add_option(
+            "-c", "--autocode",
+            action="store_true", dest="autocode",
+            help="parse the docstring for code samples"
         )
         parser.add_option(
             "-n", "--ns",

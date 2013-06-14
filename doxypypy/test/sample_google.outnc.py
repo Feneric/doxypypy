@@ -9,8 +9,7 @@
 
 
 
-## @brief  @code
-##Fetches rows from a Bigtable.
+## @brief Fetches rows from a Bigtable.
 #
 #    Retrieves rows pertaining to the given keys from the Table instance
 #    represented by big_table.  Silly things may happen if
@@ -27,11 +26,9 @@
 #        fetched. Each row is represented as a tuple of strings. For
 #        example:
 #
-# @code
 #        {'Serak': ('Rigel VII', 'Preparer'),
 #         'Zim': ('Irk', 'Invader'),
 #         'Lrrr': ('Omicron Persei 8', 'Emperor')}
-# @endcode
 #
 #        If a key from the keys argument is missing from the dictionary,
 #        then that row was not found in the table.
@@ -46,8 +43,7 @@ def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
     pass
 
 
-## @brief  @code
-##Summary of class here.
+## @brief Summary of class here.
 #
 #    Longer class information....
 #    Longer class information....

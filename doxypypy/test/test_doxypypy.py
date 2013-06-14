@@ -1,14 +1,27 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Tests the doxypypy filter.
 
-These tests may all be executed by running "setup.py test".
+These tests may all be executed by running "setup.py test" or executing
+this file directly.
 """
 import unittest
 from collections import namedtuple
-from ..doxypypy import AstWalker
-from os.path import basename, splitext
 from os import linesep
+from os.path import join, basename, splitext
+# The following little bit of hackery makes for convenient out-of-module
+# testing.  It changes to the top-level directory of the module, changes
+# the import path, and does a direct import.
+if __name__ == '__main__':
+    from sys import path
+    from os import chdir, getcwd
+    from os.path import normpath, dirname
+    path.append('doxypypy')
+    chdir(normpath(join(getcwd(), dirname(__file__), '..', '..')))
+    from doxypypy import AstWalker
+else:
+    from ..doxypypy import AstWalker
 
 
 class TestDoxypypy(unittest.TestCase):
@@ -16,7 +29,8 @@ class TestDoxypypy(unittest.TestCase):
     Define our doxypypy tests.
     """
 
-    __Options = namedtuple('Options', 'autobrief debug fullPathNamespace')
+    __Options = namedtuple('Options',
+                           'autobrief autocode debug fullPathNamespace')
     __dummySrc = [
         "print 'testing: one, two, three, & four' " + linesep,
         "print 'is five.'\t" + linesep
@@ -30,7 +44,7 @@ class TestDoxypypy(unittest.TestCase):
         """
         Sets up a temporary AST for use with our unit tests.
         """
-        options = TestDoxypypy.__Options(True, False, 'dummy')
+        options = TestDoxypypy.__Options(True, True, False, 'dummy')
         self.dummyWalker = AstWalker(TestDoxypypy.__dummySrc,
                                      options, 'dummy.py')
 
@@ -123,16 +137,22 @@ class TestDoxypypy(unittest.TestCase):
         standard.
         """
         inFilenameBase = splitext(basename(inFilename))[0]
-        options = TestDoxypypy.__Options(True, False, inFilenameBase)
-        output = self.readAndParseFile(inFilename, options)
-        goldFilename = splitext(inFilename)[0] + '.out.py'
-        goldFile = open(goldFilename)
-        goldContentLines = goldFile.readlines()
-        goldFile.close()
-        # We have to go through some extra processing to ensure line endings
-        # match across platforms.
-        goldContent = linesep.join(line.rstrip() for line in goldContentLines)
-        self.assertEqual(output, goldContent)
+        trials = (
+            ('.out', (True, True, False, inFilenameBase)),
+            ('.outnc', (True, False, False, inFilenameBase))
+        )
+        for options in trials:
+            output = self.readAndParseFile(inFilename,
+                                           TestDoxypypy.__Options(*options[1]))
+            goldFilename = splitext(inFilename)[0] + options[0] + '.py'
+            goldFile = open(goldFilename)
+            goldContentLines = goldFile.readlines()
+            goldFile.close()
+            # We have to go through some extra processing to ensure line endings
+            # match across platforms.
+            goldContent = linesep.join(line.rstrip()
+                                       for line in goldContentLines)
+            self.assertEqual(output, goldContent)
 
     def test_pepProcessing(self):
         """
