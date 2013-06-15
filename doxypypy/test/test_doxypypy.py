@@ -29,8 +29,10 @@ class TestDoxypypy(unittest.TestCase):
     Define our doxypypy tests.
     """
 
-    __Options = namedtuple('Options',
-                           'autobrief autocode debug fullPathNamespace')
+    __Options = namedtuple(
+        'Options',
+        'autobrief autocode debug fullPathNamespace topLevelNamespace'
+    )
     __dummySrc = [
         "print 'testing: one, two, three, & four' " + linesep,
         "print 'is five.'\t" + linesep
@@ -44,7 +46,7 @@ class TestDoxypypy(unittest.TestCase):
         """
         Sets up a temporary AST for use with our unit tests.
         """
-        options = TestDoxypypy.__Options(True, True, False, 'dummy')
+        options = TestDoxypypy.__Options(True, True, True, 'dummy', 'dummy')
         self.dummyWalker = AstWalker(TestDoxypypy.__dummySrc,
                                      options, 'dummy.py')
 
@@ -138,8 +140,10 @@ class TestDoxypypy(unittest.TestCase):
         """
         inFilenameBase = splitext(basename(inFilename))[0]
         trials = (
-            ('.out', (True, True, False, inFilenameBase)),
-            ('.outnc', (True, False, False, inFilenameBase))
+            ('.out', (True, True, False, inFilenameBase, inFilenameBase)),
+            ('.outnc', (True, False, False, inFilenameBase, inFilenameBase)),
+            ('.outnn', (True, True, False, inFilenameBase, None)),
+            ('.outbare', (False, False, False, inFilenameBase, None))
         )
         for options in trials:
             output = self.readAndParseFile(inFilename,

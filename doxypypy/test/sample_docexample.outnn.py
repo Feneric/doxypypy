@@ -8,15 +8,7 @@
 
 
 
-# @endcode
-# @endcode
-# @endcode
-# @code
-# @code
-##
-# @code
-# @code
-#    Does nothing more than demonstrate syntax.
+## @brief     Does nothing more than demonstrate syntax.
 #
 #    This is an example of how a Pythonic human-readable docstring can
 #    get parsed by doxypypy and marked up with Doxygen commands as a
@@ -27,7 +19,6 @@
 #
 # @param		kwarg	A keyword argument.
 #
-# @endcode
 # @return
 #        A string holding the result.
 #
@@ -55,8 +46,8 @@
 #        ValueError
 # @endcode
 #
-# @namespace sample_docexample.myfunction
 # @fn myfunction
+
 
 
 

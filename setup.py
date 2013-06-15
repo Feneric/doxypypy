@@ -9,7 +9,7 @@ chdir(dirname(__file__))
 
 setup(
     name='doxypypy',
-    version='0.4',
+    version='0.5',
     description='A Doxygen filter for Python',
     long_description=open('README.md').read(),
     author='Eric W. Brown',

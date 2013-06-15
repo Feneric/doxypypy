@@ -59,7 +59,8 @@ class AstWalker(NodeVisitor):
     __interfaceRE = regexpCompile(r"^\s*class\s+(\S+)\s*\(\s*(?:zope\.)?"
                                   r"(?:interface\.)?"
                                   r"Interface\s*\)\s*:", IGNORECASE)
-    __attributeRE = regexpCompile(r"^(\s*)(\S+)\s*=\s*(?:zope\.)?(?:interface\.)?"
+    __attributeRE = regexpCompile(r"^(\s*)(\S+)\s*=\s*(?:zope\.)?"
+                                  r"(?:interface\.)?"
                                   r"Attribute\s*\(['\"]{1,3}(.*)['\"]{1,3}\)",
                                   IGNORECASE)
 
@@ -70,17 +71,20 @@ class AstWalker(NodeVisitor):
         ' @file ': regexpCompile(r"^(\s*File:?\s*)(.*)$", IGNORECASE),
         ' @version: ': regexpCompile(r"^(\s*Version:?\s*)(.*)$", IGNORECASE)
     }
-    __argsStartRE = regexpCompile(r"^(\s*(?:(?:Keyword\s+)?(?:A|Kwa)rg(?:ument)?|Attribute)s?\s*:\s*)$",
-                                  IGNORECASE)
-    __argsRE = regexpCompile(r"^\s*(?P<name>\w+)\s*(?P<type>\(?\S*\)?)?\s*(?:-|:)+"
-                             r"\s+(?P<desc>.+)$")
+    __argsStartRE = regexpCompile(r"^(\s*(?:(?:Keyword\s+)?"
+                                  r"(?:A|Kwa)rg(?:ument)?|Attribute)s?"
+                                  r"\s*:\s*)$", IGNORECASE)
+    __argsRE = regexpCompile(r"^\s*(?P<name>\w+)\s*(?P<type>\(?\S*\)?)?\s*"
+                             r"(?:-|:)+\s+(?P<desc>.+)$")
     __returnsStartRE = regexpCompile(r"^\s*(?:Return|Yield)s:\s*$", IGNORECASE)
     __raisesStartRE = regexpCompile(r"^\s*Raises:\s*$", IGNORECASE)
     __listRE = regexpCompile(r"^\s*(([\w\.]+),\s*)+&?\s*([\w\.]+)$")
     __listItemRE = regexpCompile(r'([\w\.]+),?\s*')
-    __examplesStartRE = regexpCompile(r"^\s*(?:Example|Doctest)s?:\s*$", IGNORECASE)
+    __examplesStartRE = regexpCompile(r"^\s*(?:Example|Doctest)s?:\s*$",
+                                      IGNORECASE)
     __reqsStartRE = regexpCompile(r"^(\s*Requirements:?\s*)(.*)$", IGNORECASE)
-    __errorLineRE = regexpCompile(r"^(\s*\w+Error):?\s*(.*)$", IGNORECASE)
+    __errorLineRE = regexpCompile(r"^\s*(\w+Error|Traceback.*):?\s*(.*)$",
+                                  IGNORECASE)
 
     def __init__(self, lines, options, inFilename):
         """Initialize a few class variables in preparation for our walk."""
@@ -98,6 +102,7 @@ class AstWalker(NodeVisitor):
     @staticmethod
     def _endCodeIfNeeded(line, inCodeBlock):
         """Simple routine to append end code marker if needed."""
+        assert isinstance(line, str)
         if inCodeBlock:
             line = '# @endcode{0}{1}'.format(linesep, line.rstrip())
             inCodeBlock = False
@@ -117,6 +122,7 @@ class AstWalker(NodeVisitor):
                     # These are ambiguous.
                     line, lines = (yield)
                     testLine += linesep + line.strip()
+                    testLine = testLine.strip()
                     lineNum += 1
                 elif testLine.startswith('>>> '):
                     # This is definitely code.
@@ -129,6 +135,7 @@ class AstWalker(NodeVisitor):
                         else:
                             line, lines = (yield)
                             testLine += linesep + line.strip()
+                            testLine = testLine.strip()
                             lineNum += 1
                     except SyntaxError:
                         # This is definitely not code.
@@ -137,14 +144,17 @@ class AstWalker(NodeVisitor):
                         # Other errors are ambiguous.
                         line, lines = (yield)
                         testLine += linesep + line.strip()
+                        testLine = testLine.strip()
                         lineNum += 1
             if not inCodeBlock and lineOfCode:
                 inCodeBlock = True
-                lines[1 - lineNum] = '# @code{0}{1}'.format(linesep, lines[1 - lineNum])
+                lines[1 - lineNum] = '# @code{0}{1}'.format(linesep,
+                                                            lines[1 - lineNum])
             elif inCodeBlock and lineOfCode is False:
                 # None is ambiguous, so strict checking
                 # against False is necessary.
-                lines[-lineNum], inCodeBlock = self._endCodeIfNeeded(lines[-lineNum], inCodeBlock)
+                lines[-lineNum], inCodeBlock = self._endCodeIfNeeded(lines[-lineNum],
+                                                                     inCodeBlock)
 
     @coroutine
     def __alterDocstring(self, tail='', writer=None):
@@ -173,7 +183,8 @@ class AstWalker(NodeVisitor):
                     match = tagRE.search(line)
                     if match:
                         # We've got a simple one-line Doxygen command
-                        lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1], inCodeBlock)
+                        lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1],
+                                                                       inCodeBlock)
                         writer.send((firstLineNum, lineNum - 1, lines))
                         lines = []
                         firstLineNum = lineNum
@@ -191,21 +202,24 @@ class AstWalker(NodeVisitor):
                         # We've got an "arguments" section
                         line = line.replace(match.group(0), '').rstrip()
                         prefix = '@param\t'
-                        lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1], inCodeBlock)
+                        lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1],
+                                                                       inCodeBlock)
                         continue
                     else:
                         match = AstWalker.__argsRE.match(line)
                         if match and not inCodeBlock:
                             # We've got something that looks like an item /
                             # description pair.
-                            line = ' {0}\t{1[name]}\t{1[desc]}'.format(prefix, match.groupdict())
+                            line = ' {0}\t{1[name]}\t{1[desc]}'.format(prefix,
+                                                                       match.groupdict())
                         else:
                             match = AstWalker.__raisesStartRE.match(line)
                             if match:
                                 # We've got an "exceptions" section
                                 line = line.replace(match.group(0), '').rstrip()
                                 prefix = '@exception\t'
-                                lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1], inCodeBlock)
+                                lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1],
+                                                                               inCodeBlock)
                                 continue
                             else:
                                 match = AstWalker.__listRE.match(line)
@@ -214,24 +228,28 @@ class AstWalker(NodeVisitor):
                                     itemList = []
                                     for itemMatch in AstWalker.__listItemRE.findall(self._stripOutAnds(
                                                                                     match.group(0))):
-                                        itemList.append('# {0}\t{1}\n'.format(prefix, itemMatch))
+                                        itemList.append('# {0}\t{1}\n'.format(prefix,
+                                                                              itemMatch))
                                     line = ''.join(itemList)
                                 else:
                                     match = AstWalker.__examplesStartRE.match(line)
-                                    if match and lines[-1].strip() == '#' and self.options.autocode:
+                                    if match and lines[-1].strip() == '#' \
+                                       and self.options.autocode:
                                         # We've got an "example" section
                                         inCodeBlock = True
-                                        line = line.replace(match.group(0), ' @b Examples{0}# @code'.format(linesep))
+                                        line = line.replace(match.group(0),
+                                                            ' @b Examples{0}# @code'.format(linesep))
                                     else:
                                         match = AstWalker.__reqsStartRE.match(line)
                                         if match:
                                             # We've got a requirements section
                                             prefix = ''
-                                            line = line.replace(match.group(0), ' @b Requirements{0}# '.format(linesep))
+                                            line = line.replace(match.group(0),
+                                                                ' @b Requirements{0}# '.format(linesep))
                                         elif self.options.autocode and inCodeBlock:
-                                            lineOfCode = proseChecker.send((line, lines))
+                                            proseChecker.send((line, lines))
                                         elif self.options.autocode:
-                                            lineOfCode = codeChecker.send((line, lines))
+                                            codeChecker.send((line, lines))
 
                 # If we were passed a tail, append it to the docstring.
                 # Note that this means that we need a docstring for this
@@ -251,7 +269,8 @@ class AstWalker(NodeVisitor):
                 timeToSend = True
 
             if timeToSend:
-                lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1], inCodeBlock)
+                lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1],
+                                                               inCodeBlock)
                 writer.send((firstLineNum, lineNum, lines))
                 lines = []
                 firstLineNum = -1
@@ -313,10 +332,13 @@ class AstWalker(NodeVisitor):
         # If we have a docstring, extract information from it.
         if self.docLines:
             # Get rid of the docstring delineators.
-            self.docLines[0] = AstWalker.__docstrMarkerRE.sub('', self.docLines[0])
-            self.docLines[-1] = AstWalker.__docstrMarkerRE.sub('', self.docLines[-1])
+            self.docLines[0] = AstWalker.__docstrMarkerRE.sub('',
+                                                              self.docLines[0])
+            self.docLines[-1] = AstWalker.__docstrMarkerRE.sub('',
+                                                               self.docLines[-1])
             # Handle special strings within the docstring.
-            docstringConverter = self.__alterDocstring(tail, self.__writeDocstring())
+            docstringConverter = self.__alterDocstring(tail,
+                                                       self.__writeDocstring())
             for lineInfo in enumerate(self.docLines):
                 docstringConverter.send(lineInfo)
             docstringConverter.send((len(self.docLines) - 1, None))
@@ -332,7 +354,8 @@ class AstWalker(NodeVisitor):
 
         if defLines:
             match = AstWalker.__indentRE.match(defLines[0])
-            self.docLines = [AstWalker.__newlineRE.sub(match.group(1) + '#', docLine)
+            self.docLines = [AstWalker.__newlineRE.sub(match.group(1) + '#',
+                                                       docLine)
                              for docLine in self.docLines]
 
         # Taking away a docstring from an interface method definition sometimes
@@ -370,6 +393,7 @@ class AstWalker(NodeVisitor):
         protected because they begin with a single underscore) get Doxygen
         tags labeling them appropriately.
         """
+        assert isinstance(name, str)
         restrictionLevel = None
         if not name.endswith('__'):
             if name.startswith('__'):
@@ -387,7 +411,8 @@ class AstWalker(NodeVisitor):
         """
         restrictionLevel = self._checkMemberName(node.name)
         if restrictionLevel:
-            workTag = '{0}\n# @{1}'.format(contextTag, restrictionLevel)
+            workTag = '{0}\n# @{1}'.format(contextTag,
+                                           restrictionLevel)
         else:
             workTag = contextTag
         return workTag
@@ -445,7 +470,8 @@ class AstWalker(NodeVisitor):
         if self.options.autobrief and get_docstring(node):
             self._processDocstring(node)
         # Visit any contained nodes (in this case pretty much everything).
-        self.generic_visit(node, containingNodes=kwargs.get('containingNodes', []))
+        self.generic_visit(node, containingNodes=kwargs.get('containingNodes',
+                                                            []))
 
     def visit_Assign(self, node, **kwargs):
         """
@@ -516,13 +542,16 @@ class AstWalker(NodeVisitor):
         # is nested within a function.
         containingNodes = kwargs.get('containingNodes', []) or []
         containingNodes.append((node.name, 'function'))
-        fullPathNamespace = self._getFullPathName(containingNodes)
-        contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
-        modifiedContextTag = self._processMembers(node, contextTag)
+        if self.options.topLevelNamespace:
+            fullPathNamespace = self._getFullPathName(containingNodes)
+            contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
+            modifiedContextTag = self._processMembers(node, contextTag)
+            tail = '@namespace {0}\n# @fn {1}'.format(modifiedContextTag,
+                                                      contextTag[contextTag.rfind('.') + 1:])
+        else:
+            tail = '@fn {0}'.format(node.name)
         if self.options.autobrief and get_docstring(node):
-            self._processDocstring(node, '@namespace {0}\n# @fn {1}'.format(
-                                   modifiedContextTag,
-                                   contextTag[contextTag.rfind('.') + 1:]),
+            self._processDocstring(node, tail,
                                    containingNodes=containingNodes)
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=containingNodes)
@@ -550,24 +579,30 @@ class AstWalker(NodeVisitor):
             containingNodes.append((node.name, 'interface'))
         else:
             containingNodes.append((node.name, 'class'))
-        fullPathNamespace = self._getFullPathName(containingNodes)
+        if self.options.topLevelNamespace:
+            fullPathNamespace = self._getFullPathName(containingNodes)
+            contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
+            tail = '@namespace {0}\n# @{1} '.format(contextTag,
+                                                    containingNodes[-1][1])
+        else:
+            tail = ''
+            contextTag = '@{0} {1}'.format(containingNodes[-1][1], node.name)
         # Class definitions have one Doxygen-significant special case:
         # interface definitions.
         match = AstWalker.__interfaceRE.match(self.lines[lineNum])
         if match:
-            contextTag = '@namespace {0}\n# @interface {1}'.format(
-                '.'.join(pathTuple[0] for pathTuple in fullPathNamespace), match.group(1))
+            contextTag = '{0}{1}'.format(tail, match.group(1))
             if self.options.debug:
                 print >> stderr, "# Interface {0.name}".format(node)
         else:
-            contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
-            contextTag = '@namespace {0}\n# @class {1}'.format(
-                contextTag, contextTag[contextTag.rfind('.') + 1:])
+            contextTag = '{0}{1}'.format(tail,
+                                         contextTag[contextTag.rfind('.') + 1:])
             if self.options.debug:
                 print >> stderr, "# Class {0.name}".format(node)
         contextTag = self._processMembers(node, contextTag)
         if self.options.autobrief and get_docstring(node):
-            self._processDocstring(node, contextTag, containingNodes=containingNodes)
+            self._processDocstring(node, contextTag,
+                                   containingNodes=containingNodes)
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=containingNodes)
         # Remove the item we pushed onto the containing nodes hierarchy.
