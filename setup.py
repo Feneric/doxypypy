@@ -4,7 +4,8 @@ from setuptools import setup, find_packages
 from os.path import dirname
 from os import chdir
 
-chdir(dirname(__file__))
+if __file__:
+    chdir(dirname(__file__))
 
 
 setup(
