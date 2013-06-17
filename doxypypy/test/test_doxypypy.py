@@ -162,7 +162,7 @@ class TestDoxypypy(unittest.TestCase):
         """
         Test the basic example included in PEP 257.
         """
-        sampleName = 'doxypypy/test/sample_complex.py'
+        sampleName = 'doxypypy/test/sample_pep.py'
         self.compareAgainstGoldStandard(sampleName)
 
     def test_privacyProcessing(self):
