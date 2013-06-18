@@ -17,7 +17,7 @@ from zope.interface import Interface, Attribute
 #    filter. This is a special case commonly known as a "marker
 #    interface" that declares neither methods nor attributes.
 #
-# INul
+# @interface INul
 
 class INul(Interface):
 
@@ -29,7 +29,7 @@ class INul(Interface):
 #    Nothing special, just a sample interface to help test the
 #    filter. This one has just a single method.
 #
-# IUnu
+# @interface IUnu
 
 class IUnu(Interface):
 
@@ -47,7 +47,7 @@ class IUnu(Interface):
 #    Nothing special, just a sample interface to help test the
 #    filter. This one has multiple methods.
 #
-# IDu
+# @interface IDu
 
 class IDu(Interface):
 
@@ -71,7 +71,7 @@ class IDu(Interface):
 #    Nothing special, just a sample interface to help test the
 #    filter. This one has just a single attribute.
 #
-# ITri
+# @interface ITri
 
 class ITri(Interface):
 
@@ -88,7 +88,7 @@ class ITri(Interface):
 #    Nothing special, just a sample interface to help test the
 #    filter. This one has multiple attributes.
 #
-# IKvar
+# @interface IKvar
 
 class IKvar(Interface):
 
@@ -111,7 +111,7 @@ class IKvar(Interface):
 #    filter. This one opens things up a little and has multiple
 #    attributes and methods.
 #
-# IKvin
+# @interface IKvin
 
 class IKvin(Interface):
 

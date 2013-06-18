@@ -112,18 +112,18 @@ class AstWalker(NodeVisitor):
     def _checkIfCode(self, inCodeBlock):
         """Checks whether or not a given line appears to be Python code."""
         while True:
-            line, lines = (yield)
-            lineNum = 0
+            line, lines, lineNum = (yield)
+            testLineNum = 1
             match = AstWalker.__errorLineRE.match(line)
             testLine = line.strip()
             lineOfCode = None
             while lineOfCode is None:
                 if not testLine or testLine == '...' or match:
                     # These are ambiguous.
-                    line, lines = (yield)
+                    line, lines, lineNum = (yield)
                     testLine += linesep + line.strip()
                     testLine = testLine.strip()
-                    lineNum += 1
+                    testLineNum += 1
                 elif testLine.startswith('>>> '):
                     # This is definitely code.
                     lineOfCode = True
@@ -133,28 +133,31 @@ class AstWalker(NodeVisitor):
                         if compLine:
                             lineOfCode = True
                         else:
-                            line, lines = (yield)
+                            line, lines, lineNum = (yield)
                             testLine += linesep + line.strip()
                             testLine = testLine.strip()
-                            lineNum += 1
-                    except SyntaxError:
+                            testLineNum += 1
+                    except (SyntaxError, RuntimeError):
                         # This is definitely not code.
                         lineOfCode = False
-                    except:
+                    except Exception:
                         # Other errors are ambiguous.
-                        line, lines = (yield)
+                        line, lines, lineNum = (yield)
                         testLine += linesep + line.strip()
                         testLine = testLine.strip()
-                        lineNum += 1
+                        testLineNum += 1
             if not inCodeBlock and lineOfCode:
                 inCodeBlock = True
-                lines[1 - lineNum] = '# @code{0}{1}'.format(linesep,
-                                                            lines[1 - lineNum])
+                lines[lineNum - testLineNum] = '{0}{1}# @code{1}'.format(
+                    lines[lineNum - testLineNum],
+                    linesep
+                )
             elif inCodeBlock and lineOfCode is False:
                 # None is ambiguous, so strict checking
                 # against False is necessary.
-                lines[-lineNum], inCodeBlock = self._endCodeIfNeeded(lines[-lineNum],
-                                                                     inCodeBlock)
+                lines[lineNum - testLineNum], inCodeBlock = \
+                    self._endCodeIfNeeded(lines[lineNum - testLineNum],
+                                          inCodeBlock)
 
     @coroutine
     def __alterDocstring(self, tail='', writer=None):
@@ -247,9 +250,9 @@ class AstWalker(NodeVisitor):
                                             line = line.replace(match.group(0),
                                                                 ' @b Requirements{0}# '.format(linesep))
                                         elif self.options.autocode and inCodeBlock:
-                                            proseChecker.send((line, lines))
+                                            proseChecker.send((line, lines, lineNum))
                                         elif self.options.autocode:
-                                            codeChecker.send((line, lines))
+                                            codeChecker.send((line, lines, lineNum))
 
                 # If we were passed a tail, append it to the docstring.
                 # Note that this means that we need a docstring for this
@@ -466,7 +469,7 @@ class AstWalker(NodeVisitor):
         appropriate Doxygen tags.
         """
         if self.options.debug:
-            print >> stderr, "# Module"
+            print >> stderr, "# Module {0}".format(self.options.fullPathNamespace)
         if self.options.autobrief and get_docstring(node):
             self._processDocstring(node)
         # Visit any contained nodes (in this case pretty much everything).
@@ -576,8 +579,12 @@ class AstWalker(NodeVisitor):
         containingNodes = kwargs.get('containingNodes', []) or []
         match = AstWalker.__interfaceRE.match(self.lines[lineNum])
         if match:
+            if self.options.debug:
+                print >> stderr, "# Interface {0.name}".format(node)
             containingNodes.append((node.name, 'interface'))
         else:
+            if self.options.debug:
+                print >> stderr, "# Class {0.name}".format(node)
             containingNodes.append((node.name, 'class'))
         if self.options.topLevelNamespace:
             fullPathNamespace = self._getFullPathName(containingNodes)
@@ -585,8 +592,8 @@ class AstWalker(NodeVisitor):
             tail = '@namespace {0}\n# @{1} '.format(contextTag,
                                                     containingNodes[-1][1])
         else:
-            tail = ''
-            contextTag = '@{0} {1}'.format(containingNodes[-1][1], node.name)
+            tail = '@{0} '.format(containingNodes[-1][1], node.name)
+            contextTag = node.name
         # Class definitions have one Doxygen-significant special case:
         # interface definitions.
         match = AstWalker.__interfaceRE.match(self.lines[lineNum])
@@ -597,8 +604,6 @@ class AstWalker(NodeVisitor):
         else:
             contextTag = '{0}{1}'.format(tail,
                                          contextTag[contextTag.rfind('.') + 1:])
-            if self.options.debug:
-                print >> stderr, "# Class {0.name}".format(node)
         contextTag = self._processMembers(node, contextTag)
         if self.options.autobrief and get_docstring(node):
             self._processDocstring(node, contextTag,

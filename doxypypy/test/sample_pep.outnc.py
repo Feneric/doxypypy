@@ -11,7 +11,7 @@ complex_zero = 0j
 # @param		imag	the imaginary part (default 0.0)
 #
 #
-# @namespace sample_complex.complex
+# @namespace sample_pep.complex
 # @fn complex
 
 def complex(real=0.0, imag=0.0):
