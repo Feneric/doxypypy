@@ -14,13 +14,16 @@
 #    get parsed by doxypypy and marked up with Doxygen commands as a
 #    regular input filter to Doxygen.
 #
+#
 # @param		arg1	A positional argument.
 # @param		arg2	Another positional argument.
+#
 #
 # @param		kwarg	A keyword argument.
 #
 # @return
 #        A string holding the result.
+#
 #
 ## @exception		ZeroDivisionError
 # @exception		AssertionError
@@ -48,9 +51,6 @@
 #
 # @namespace sample_docexample.myfunction
 # @fn myfunction
-
-
-
 
 def myfunction(arg1, arg2, kwarg='whatever.'):
     assert isinstance(arg1, int)

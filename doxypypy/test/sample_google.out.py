@@ -15,6 +15,7 @@
 #    represented by big_table.  Silly things may happen if
 #    other_silly_variable is not None.
 #
+#
 # @param		big_table	An open Bigtable Table instance.
 # @param		keys	A sequence of strings representing the key of each table row
 #            to fetch.
@@ -35,12 +36,11 @@
 #        If a key from the keys argument is missing from the dictionary,
 #        then that row was not found in the table.
 #
+#
 # @exception		IOError	An error occurred accessing the bigtable.Table object.
 #
 # @namespace sample_google.fetch_bigtable_rows
 # @fn fetch_bigtable_rows
-
-
 def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
     pass
 
@@ -50,12 +50,12 @@ def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
 #    Longer class information....
 #    Longer class information....
 #
+#
 # @param		likes_spam	A boolean indicating if we like SPAM or not.
 # @param		eggs	An integer count of the eggs we have laid.
 #
 # @namespace sample_google.SampleClass
 # @class SampleClass
-
 class SampleClass(object):
 
     ## @brief Inits SampleClass with blah.

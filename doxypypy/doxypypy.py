@@ -83,7 +83,9 @@ class AstWalker(NodeVisitor):
     __examplesStartRE = regexpCompile(r"^\s*(?:Example|Doctest)s?:\s*$",
                                       IGNORECASE)
     __reqsStartRE = regexpCompile(r"^(\s*Requirements:?\s*)(.*)$", IGNORECASE)
-    __errorLineRE = regexpCompile(r"^\s*(\w+Error|Traceback.*):?\s*(.*)$",
+    # The error line should match traceback lines, error exception lines, and
+    # (due to a weird behavior of codeop) single word lines.
+    __errorLineRE = regexpCompile(r"^\s*((?:\S+Error|Traceback.*):?\s*(.*)|@?[\w.]+)\s*$",
                                   IGNORECASE)
 
     def __init__(self, lines, options, inFilename):
@@ -114,23 +116,23 @@ class AstWalker(NodeVisitor):
         while True:
             line, lines, lineNum = (yield)
             testLineNum = 1
-            match = AstWalker.__errorLineRE.match(line)
+            currentLineNum = 0
             testLine = line.strip()
             lineOfCode = None
             while lineOfCode is None:
+                match = AstWalker.__errorLineRE.match(testLine)
                 if not testLine or testLine == '...' or match:
                     # These are ambiguous.
                     line, lines, lineNum = (yield)
-                    testLine += linesep + line.strip()
-                    testLine = testLine.strip()
-                    testLineNum += 1
+                    testLine = line.strip()
+                    testLineNum = 1
                 elif testLine.startswith('>>> '):
                     # This is definitely code.
                     lineOfCode = True
                 else:
                     try:
                         compLine = compile_command(testLine)
-                        if compLine:
+                        if compLine and lines[currentLineNum].strip() == '#':
                             lineOfCode = True
                         else:
                             line, lines, lineNum = (yield)
@@ -143,21 +145,20 @@ class AstWalker(NodeVisitor):
                     except Exception:
                         # Other errors are ambiguous.
                         line, lines, lineNum = (yield)
-                        testLine += linesep + line.strip()
-                        testLine = testLine.strip()
-                        testLineNum += 1
+                        testLine = line.strip()
+                        testLineNum = 1
+                currentLineNum = lineNum - testLineNum
             if not inCodeBlock and lineOfCode:
                 inCodeBlock = True
-                lines[lineNum - testLineNum] = '{0}{1}# @code{1}'.format(
-                    lines[lineNum - testLineNum],
+                lines[currentLineNum] = '{0}{1}# @code{1}'.format(
+                    lines[currentLineNum],
                     linesep
                 )
             elif inCodeBlock and lineOfCode is False:
                 # None is ambiguous, so strict checking
                 # against False is necessary.
-                lines[lineNum - testLineNum], inCodeBlock = \
-                    self._endCodeIfNeeded(lines[lineNum - testLineNum],
-                                          inCodeBlock)
+                lines[currentLineNum], inCodeBlock = \
+                    self._endCodeIfNeeded(lines[currentLineNum], inCodeBlock)
 
     @coroutine
     def __alterDocstring(self, tail='', writer=None):
@@ -207,6 +208,7 @@ class AstWalker(NodeVisitor):
                         prefix = '@param\t'
                         lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1],
                                                                        inCodeBlock)
+                        lines.append('#' + line)
                         continue
                     else:
                         match = AstWalker.__argsRE.match(line)
@@ -223,6 +225,7 @@ class AstWalker(NodeVisitor):
                                 prefix = '@exception\t'
                                 lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1],
                                                                                inCodeBlock)
+                                lines.append('#' + line)
                                 continue
                             else:
                                 match = AstWalker.__listRE.match(line)
@@ -250,9 +253,9 @@ class AstWalker(NodeVisitor):
                                             line = line.replace(match.group(0),
                                                                 ' @b Requirements{0}# '.format(linesep))
                                         elif self.options.autocode and inCodeBlock:
-                                            proseChecker.send((line, lines, lineNum))
+                                            proseChecker.send((line, lines, lineNum - firstLineNum))
                                         elif self.options.autocode:
-                                            codeChecker.send((line, lines, lineNum))
+                                            codeChecker.send((line, lines, lineNum - firstLineNum))
 
                 # If we were passed a tail, append it to the docstring.
                 # Note that this means that we need a docstring for this
