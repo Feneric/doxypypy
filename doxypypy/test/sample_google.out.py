@@ -40,7 +40,6 @@
 # @exception		IOError	An error occurred accessing the bigtable.Table object.
 #
 # @namespace sample_google.fetch_bigtable_rows
-# @fn fetch_bigtable_rows
 def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
     pass
 
@@ -55,19 +54,16 @@ def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
 # @param		eggs	An integer count of the eggs we have laid.
 #
 # @namespace sample_google.SampleClass
-# @class SampleClass
 class SampleClass(object):
 
     ## @brief Inits SampleClass with blah.
     # @namespace sample_google.SampleClass.__init__
-    # @fn __init__
     def __init__(self, likes_spam=False):
         self.likes_spam = likes_spam
         self.eggs = 0
 
     ## @brief Performs operation blah.
     # @namespace sample_google.SampleClass.public_method
-    # @fn public_method
     def public_method(self):
         pass
 

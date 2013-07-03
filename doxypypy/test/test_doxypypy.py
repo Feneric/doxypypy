@@ -8,7 +8,7 @@ this file directly.
 """
 import unittest
 from collections import namedtuple
-from os import linesep
+from os import linesep, sep
 from os.path import join, basename, splitext
 # The following little bit of hackery makes for convenient out-of-module
 # testing.  It changes to the top-level directory of the module, changes
@@ -139,11 +139,12 @@ class TestDoxypypy(unittest.TestCase):
         standard.
         """
         inFilenameBase = splitext(basename(inFilename))[0]
+        fullPathNamespace = inFilenameBase.replace(sep, '.')
         trials = (
-            ('.out', (True, True, False, inFilenameBase, inFilenameBase)),
-            ('.outnc', (True, False, False, inFilenameBase, inFilenameBase)),
-            ('.outnn', (True, True, False, inFilenameBase, None)),
-            ('.outbare', (False, False, False, inFilenameBase, None))
+            ('.out', (True, True, False, fullPathNamespace, inFilenameBase)),
+            ('.outnc', (True, False, False, fullPathNamespace, inFilenameBase)),
+            ('.outnn', (True, True, False, fullPathNamespace, None)),
+            ('.outbare', (False, False, False, fullPathNamespace, None))
         )
         for options in trials:
             output = self.readAndParseFile(inFilename,
@@ -156,7 +157,7 @@ class TestDoxypypy(unittest.TestCase):
             # match across platforms.
             goldContent = linesep.join(line.rstrip()
                                        for line in goldContentLines)
-            self.assertEqual(output, goldContent)
+            self.assertEqual(output.rstrip(linesep), goldContent.rstrip(linesep))
 
     def test_pepProcessing(self):
         """

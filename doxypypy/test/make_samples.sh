@@ -11,7 +11,7 @@ for sample in sample_*.py;do
 			echo "Processing" $sampleBase
 			../doxypypy.py --autocode --autobrief --ns=$sampleBase $sample > $sampleBase.out.py
 			../doxypypy.py --autocode --autobrief $sample > $sampleBase.outnn.py
-			../doxypypy.py --autobrief --ns=$sampleBase $sample > $sampleBase.outnc.p
+			../doxypypy.py --autobrief --ns=$sampleBase $sample > $sampleBase.outnc.py
 			../doxypypy.py $sample > $sampleBase.outbare.py
 	esac
 done

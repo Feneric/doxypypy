@@ -13,7 +13,6 @@ complex_zero = 0j
 #
 #
 # @namespace sample_pep.complex
-# @fn complex
 def complex(real=0.0, imag=0.0):
     if imag == 0.0 and real == 0.0:
         return complex_zero

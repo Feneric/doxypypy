@@ -50,7 +50,6 @@
 # @endcode
 #
 # @namespace sample_docexample.myfunction
-# @fn myfunction
 
 def myfunction(arg1, arg2, kwarg='whatever.'):
     assert isinstance(arg1, int)

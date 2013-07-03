@@ -269,7 +269,7 @@ class AstWalker(NodeVisitor):
                 if lineNum == 0:
                     line = '#' + line
 
-                lines.append(line)
+                lines.append(line.replace(' ' + linesep, linesep))
             else:
                 # If we get our sentinel value, send out what we've got.
                 timeToSend = True
@@ -417,8 +417,9 @@ class AstWalker(NodeVisitor):
         """
         restrictionLevel = self._checkMemberName(node.name)
         if restrictionLevel:
-            workTag = '{0}\n# @{1}'.format(contextTag,
-                                           restrictionLevel)
+            workTag = '{0}{1}# @{2}'.format(contextTag,
+                                            linesep,
+                                            restrictionLevel)
         else:
             workTag = contextTag
         return workTag
@@ -552,10 +553,9 @@ class AstWalker(NodeVisitor):
             fullPathNamespace = self._getFullPathName(containingNodes)
             contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
             modifiedContextTag = self._processMembers(node, contextTag)
-            tail = '@namespace {0}\n# @fn {1}'.format(modifiedContextTag,
-                                                      contextTag[contextTag.rfind('.') + 1:])
+            tail = '@namespace {0}'.format(modifiedContextTag)
         else:
-            tail = '@fn {0}'.format(node.name)
+            tail = self._processMembers(node, '')
         if self.options.autobrief and get_docstring(node):
             self._processDocstring(node, tail,
                                    containingNodes=containingNodes)
@@ -592,21 +592,17 @@ class AstWalker(NodeVisitor):
         if self.options.topLevelNamespace:
             fullPathNamespace = self._getFullPathName(containingNodes)
             contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
-            tail = '@namespace {0}\n# @{1} '.format(contextTag,
-                                                    containingNodes[-1][1])
+            tail = '@namespace {0}'.format(contextTag)
         else:
-            tail = '@{0} '.format(containingNodes[-1][1], node.name)
-            contextTag = node.name
+            tail = ''
         # Class definitions have one Doxygen-significant special case:
         # interface definitions.
-        match = AstWalker.__interfaceRE.match(self.lines[lineNum])
         if match:
-            contextTag = '{0}{1}'.format(tail, match.group(1))
-            if self.options.debug:
-                print >> stderr, "# Interface {0.name}".format(node)
+            contextTag = '{0}{1}# @interface {2}'.format(tail,
+                                                         linesep,
+                                                         match.group(1))
         else:
-            contextTag = '{0}{1}'.format(tail,
-                                         contextTag[contextTag.rfind('.') + 1:])
+            contextTag = tail
         contextTag = self._processMembers(node, contextTag)
         if self.options.autobrief and get_docstring(node):
             self._processDocstring(node, contextTag,

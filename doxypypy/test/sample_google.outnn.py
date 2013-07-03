@@ -39,7 +39,6 @@
 #
 # @exception		IOError	An error occurred accessing the bigtable.Table object.
 #
-# @fn fetch_bigtable_rows
 def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
     pass
 
@@ -53,17 +52,14 @@ def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
 # @param		likes_spam	A boolean indicating if we like SPAM or not.
 # @param		eggs	An integer count of the eggs we have laid.
 #
-# @class SampleClass
 class SampleClass(object):
 
     ## @brief Inits SampleClass with blah.
-    # @fn __init__
     def __init__(self, likes_spam=False):
         self.likes_spam = likes_spam
         self.eggs = 0
 
     ## @brief Performs operation blah.
-    # @fn public_method
     def public_method(self):
         pass
 

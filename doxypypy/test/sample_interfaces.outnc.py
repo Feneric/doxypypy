@@ -39,7 +39,6 @@ class IUnu(Interface):
 
     ## @brief The first method offered for the first interface.
     # @namespace sample_interfaces.IUnu.unuMethod
-    # @fn unuMethod
     def unuMethod(unuArg, *args):
 
         pass
@@ -59,14 +58,12 @@ class IDu(Interface):
 
     ## @brief The first method offered for the second interface.
     # @namespace sample_interfaces.IDu.duMethod
-    # @fn duMethod
     def duMethod(duArg1, duArg2):
 
         pass
 
     ## @brief The second method offered for the second interface.
     # @namespace sample_interfaces.IDu.duMethod2
-    # @fn duMethod2
     def duMethod2(duArg1, **kwargs):
 
         pass
@@ -138,14 +135,12 @@ class IKvin(Interface):
 
     ## @brief The first method offered for the fifth interface.
     # @namespace sample_interfaces.IKvin.kvinMethod
-    # @fn kvinMethod
     def kvinMethod(kvinArg1, kvinArg2, *args, **kwargs):
 
         pass
 
     ## @brief The second method offered for the fifth interface.
     # @namespace sample_interfaces.IKvin.kvinMethod2
-    # @fn kvinMethod2
     def kvinMethod2(kvinArg1, kvinArg2='default'):
 
         pass
@@ -157,7 +152,6 @@ class IKvin(Interface):
 
     ## @brief The third method offered for the fifth interface.
     # @namespace sample_interfaces.IKvin.kvinMethod3
-    # @fn kvinMethod3
     def kvinMethod3(kvinArg1, kvinArg2='default'):
 
         pass

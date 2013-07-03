@@ -12,7 +12,6 @@ complex_zero = 0j
 # @param		imag	the imaginary part (default 0.0)
 #
 #
-# @fn complex
 def complex(real=0.0, imag=0.0):
     if imag == 0.0 and real == 0.0:
         return complex_zero
