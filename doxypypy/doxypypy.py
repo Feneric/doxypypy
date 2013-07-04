@@ -205,7 +205,10 @@ class AstWalker(NodeVisitor):
                     if match:
                         # We've got an "arguments" section
                         line = line.replace(match.group(0), '').rstrip()
-                        prefix = '@param\t'
+                        if 'attr' in match.group(0).lower():
+                            prefix = '@var\t'
+                        else:
+                            prefix = '@param\t'
                         lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1],
                                                                        inCodeBlock)
                         lines.append('#' + line)
