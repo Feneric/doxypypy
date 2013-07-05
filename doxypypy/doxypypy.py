@@ -218,8 +218,12 @@ class AstWalker(NodeVisitor):
                         if match and not inCodeBlock:
                             # We've got something that looks like an item /
                             # description pair.
-                            line = ' {0}\t{1[name]}\t{1[desc]}'.format(prefix,
-                                                                       match.groupdict())
+                            if 'var' in prefix:
+                                line = '# {0}\t{1[name]}{2}# {1[desc]}'.format(
+                                    prefix, match.groupdict(), linesep)
+                            else:
+                                line = ' {0}\t{1[name]}\t{1[desc]}'.format(
+                                    prefix, match.groupdict())
                         else:
                             match = AstWalker.__raisesStartRE.match(line)
                             if match:

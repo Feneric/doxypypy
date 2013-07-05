@@ -48,8 +48,10 @@ def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
 #    Longer class information....
 #
 #
-# @var		likes_spam	A boolean indicating if we like SPAM or not.
-# @var		eggs	An integer count of the eggs we have laid.
+## @var		likes_spam
+# A boolean indicating if we like SPAM or not.
+## @var		eggs
+# An integer count of the eggs we have laid.
 #
 # @namespace sample_google.SampleClass
 class SampleClass(object):
