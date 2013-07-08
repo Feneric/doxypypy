@@ -195,6 +195,13 @@ class TestDoxypypy(unittest.TestCase):
         sampleName = 'doxypypy/test/sample_interfaces.py'
         self.compareAgainstGoldStandard(sampleName)
 
+    def test_maze(self):
+        """
+        Test a basic example inspired by the Commodore one-liner.
+        """
+        sampleName = 'doxypypy/test/sample_maze.py'
+        self.compareAgainstGoldStandard(sampleName)
+
 
 if __name__ == '__main__':
     # When executed from the command line, run all the tests via unittest.

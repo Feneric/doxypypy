@@ -187,8 +187,8 @@ class AstWalker(NodeVisitor):
                     match = tagRE.search(line)
                     if match:
                         # We've got a simple one-line Doxygen command
-                        lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1],
-                                                                       inCodeBlock)
+                        lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                            lines[-1], inCodeBlock)
                         writer.send((firstLineNum, lineNum - 1, lines))
                         lines = []
                         firstLineNum = lineNum
@@ -209,8 +209,8 @@ class AstWalker(NodeVisitor):
                             prefix = '@var\t'
                         else:
                             prefix = '@param\t'
-                        lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1],
-                                                                       inCodeBlock)
+                        lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                            lines[-1], inCodeBlock)
                         lines.append('#' + line)
                         continue
                     else:
@@ -230,8 +230,8 @@ class AstWalker(NodeVisitor):
                                 # We've got an "exceptions" section
                                 line = line.replace(match.group(0), '').rstrip()
                                 prefix = '@exception\t'
-                                lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1],
-                                                                               inCodeBlock)
+                                lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                    lines[-1], inCodeBlock)
                                 lines.append('#' + line)
                                 continue
                             else:
@@ -241,8 +241,8 @@ class AstWalker(NodeVisitor):
                                     itemList = []
                                     for itemMatch in AstWalker.__listItemRE.findall(self._stripOutAnds(
                                                                                     match.group(0))):
-                                        itemList.append('# {0}\t{1}\n'.format(prefix,
-                                                                              itemMatch))
+                                        itemList.append('# {0}\t{1}{2}'.format(
+                                            prefix, itemMatch, linesep))
                                     line = ''.join(itemList)
                                 else:
                                     match = AstWalker.__examplesStartRE.match(line)
@@ -257,18 +257,30 @@ class AstWalker(NodeVisitor):
                                         if match:
                                             # We've got a requirements section
                                             prefix = ''
-                                            line = line.replace(match.group(0),
-                                                                ' @b Requirements{0}# '.format(linesep))
+                                            line = line.replace(
+                                                match.group(0),
+                                                ' @b Requirements{0}# '.format(linesep)
+                                            )
                                         elif self.options.autocode and inCodeBlock:
-                                            proseChecker.send((line, lines, lineNum - firstLineNum))
+                                            proseChecker.send(
+                                                (
+                                                    line, lines,
+                                                    lineNum - firstLineNum
+                                                )
+                                            )
                                         elif self.options.autocode:
-                                            codeChecker.send((line, lines, lineNum - firstLineNum))
+                                            codeChecker.send(
+                                                (
+                                                    line, lines,
+                                                    lineNum - firstLineNum
+                                                )
+                                            )
 
                 # If we were passed a tail, append it to the docstring.
                 # Note that this means that we need a docstring for this
                 # item to get documented.
                 if tail and lineNum == len(self.docLines) - 1:
-                    line = '{0}\n# {1}'.format(line.rstrip(), tail)
+                    line = '{0}{1}# {2}'.format(line.rstrip(), linesep, tail)
 
                 # Add comment marker for every line.
                 line = '#{0}'.format(line.rstrip())
@@ -385,7 +397,8 @@ class AstWalker(NodeVisitor):
             parentType = fullPathNamespace[-2][1]
             if parentType == 'interface' and typeName == 'FunctionDef' \
                or fullPathNamespace[-1][1] == 'interface':
-                defLines[-1] = '{0}\n{1}pass'.format(defLines[-1], indentStr)
+                defLines[-1] = '{0}{1}{2}pass'.format(defLines[-1],
+                                                      linesep, indentStr)
 
         # For classes and functions, apply our changes and reverse the
         # order of the declaration and docstring, and for modules just
@@ -498,14 +511,17 @@ class AstWalker(NodeVisitor):
         private for Doxygen.
         """
         lineNum = node.lineno - 1
-        # Assignments have one Doxygen-significant special case:  interface attributes.
+        # Assignments have one Doxygen-significant special case:
+        # interface attributes.
         match = AstWalker.__attributeRE.match(self.lines[lineNum])
         if match:
             self.lines[lineNum] = '{0}## @property {1}\n{0}# {2}\n' \
-                                  '{0}# @hideinitializer\n{3}\n'.format(match.group(1),
-                                                                        match.group(2),
-                                                                        match.group(3),
-                                                                        self.lines[lineNum].rstrip())
+                '{0}# @hideinitializer\n{3}\n'.format(
+                    match.group(1),
+                    match.group(2),
+                    match.group(3),
+                    self.lines[lineNum].rstrip()
+                )
             if self.options.debug:
                 print >> stderr, "# Attribute {0.id}".format(node.targets[0])
         if isinstance(node.targets[0], Name):
@@ -513,10 +529,12 @@ class AstWalker(NodeVisitor):
             restrictionLevel = self._checkMemberName(node.targets[0].id)
             if restrictionLevel:
                 self.lines[lineNum] = '{0}## @var {1}\n{0}# @hideinitializer\n' \
-                                      '{0}# @{2}\n{3}\n'.format(match.group(1),
-                                                                node.targets[0].id,
-                                                                restrictionLevel,
-                                                                self.lines[lineNum].rstrip())
+                    '{0}# @{2}\n{3}\n'.format(
+                        match.group(1),
+                        node.targets[0].id,
+                        restrictionLevel,
+                        self.lines[lineNum].rstrip()
+                    )
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=kwargs['containingNodes'])
 
