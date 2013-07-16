@@ -65,11 +65,11 @@ class AstWalker(NodeVisitor):
                                   IGNORECASE)
 
     __singleLineREs = {
-        ' @author: ': regexpCompile(r"^(\s*Authors?:?\s*)(.*)$", IGNORECASE),
-        ' @copyright ': regexpCompile(r"^(\s*Copyright:?\s*)(.*)$", IGNORECASE),
-        ' @date ': regexpCompile(r"^(\s*Date:?\s*)(.*)$", IGNORECASE),
-        ' @file ': regexpCompile(r"^(\s*File:?\s*)(.*)$", IGNORECASE),
-        ' @version: ': regexpCompile(r"^(\s*Version:?\s*)(.*)$", IGNORECASE)
+        ' @author: ': regexpCompile(r"^(\s*Authors?:\s*)(.*)$", IGNORECASE),
+        ' @copyright ': regexpCompile(r"^(\s*Copyright:\s*)(.*)$", IGNORECASE),
+        ' @date ': regexpCompile(r"^(\s*Date:\s*)(.*)$", IGNORECASE),
+        ' @file ': regexpCompile(r"^(\s*File:\s*)(.*)$", IGNORECASE),
+        ' @version: ': regexpCompile(r"^(\s*Version:\s*)(.*)$", IGNORECASE)
     }
     __argsStartRE = regexpCompile(r"^(\s*(?:(?:Keyword\s+)?"
                                   r"(?:A|Kwa)rg(?:ument)?|Attribute)s?"
