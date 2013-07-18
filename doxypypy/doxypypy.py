@@ -206,7 +206,7 @@ class AstWalker(NodeVisitor):
                         # We've got an "arguments" section
                         line = line.replace(match.group(0), '').rstrip()
                         if 'attr' in match.group(0).lower():
-                            prefix = '@var\t'
+                            prefix = '@property\t'
                         else:
                             prefix = '@param\t'
                         lines[-1], inCodeBlock = self._endCodeIfNeeded(
@@ -218,7 +218,7 @@ class AstWalker(NodeVisitor):
                         if match and not inCodeBlock:
                             # We've got something that looks like an item /
                             # description pair.
-                            if 'var' in prefix:
+                            if 'property' in prefix:
                                 line = '# {0}\t{1[name]}{2}# {1[desc]}'.format(
                                     prefix, match.groupdict(), linesep)
                             else:
@@ -399,6 +399,24 @@ class AstWalker(NodeVisitor):
                or fullPathNamespace[-1][1] == 'interface':
                 defLines[-1] = '{0}{1}{2}pass'.format(defLines[-1],
                                                       linesep, indentStr)
+            elif self.options.autobrief and typeName == 'ClassDef':
+                # If we're parsing docstrings separate out class attribute
+                # definitions to get better Doxygen output.
+                for firstVarLineNum, firstVarLine in enumerate(self.docLines):
+                    if '@property\t' in firstVarLine:
+                        break
+                lastVarLineNum = len(self.docLines)
+                while lastVarLineNum > firstVarLineNum:
+                    lastVarLineNum -= 1
+                    if '@property\t' in self.docLines[lastVarLineNum]:
+                        break
+                lastVarLineNum += 1
+                if firstVarLineNum < len(self.docLines):
+                    varLines = ['{0}{1}'.format(linesep, docLine)
+                                for docLine in self.docLines[
+                                    firstVarLineNum: lastVarLineNum]]
+                    defLines.extend(varLines)
+                    self.docLines[firstVarLineNum: lastVarLineNum] = []
 
         # For classes and functions, apply our changes and reverse the
         # order of the declaration and docstring, and for modules just

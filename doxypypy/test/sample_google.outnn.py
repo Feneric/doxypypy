@@ -49,12 +49,14 @@ def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
 #    Longer class information....
 #
 #
-## @var		likes_spam
-# A boolean indicating if we like SPAM or not.
-## @var		eggs
-# An integer count of the eggs we have laid.
 #
 class SampleClass(object):
+
+## @property		likes_spam
+# A boolean indicating if we like SPAM or not.
+
+## @property		eggs
+# An integer count of the eggs we have laid.
 
     ## @brief Inits SampleClass with blah.
     def __init__(self, likes_spam=False):
