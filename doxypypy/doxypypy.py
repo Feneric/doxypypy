@@ -533,10 +533,11 @@ class AstWalker(NodeVisitor):
         # interface attributes.
         match = AstWalker.__attributeRE.match(self.lines[lineNum])
         if match:
-            self.lines[lineNum] = '{0}## @property {1}\n{0}# {2}\n' \
-                '{0}# @hideinitializer\n{3}\n'.format(
+            self.lines[lineNum] = '{0}## @property {1}{2}{0}# {3}{2}' \
+                '{0}# @hideinitializer{2}{4}{2}'.format(
                     match.group(1),
                     match.group(2),
+                    linesep,
                     match.group(3),
                     self.lines[lineNum].rstrip()
                 )
@@ -546,10 +547,11 @@ class AstWalker(NodeVisitor):
             match = AstWalker.__indentRE.match(self.lines[lineNum])
             restrictionLevel = self._checkMemberName(node.targets[0].id)
             if restrictionLevel:
-                self.lines[lineNum] = '{0}## @var {1}\n{0}# @hideinitializer\n' \
-                    '{0}# @{2}\n{3}\n'.format(
+                self.lines[lineNum] = '{0}## @var {1}{2}{0}' \
+                    '# @hideinitializer{2}{0}# @{3}{2}{4}{2}'.format(
                         match.group(1),
                         node.targets[0].id,
+                        linesep,
                         restrictionLevel,
                         self.lines[lineNum].rstrip()
                     )
@@ -569,8 +571,9 @@ class AstWalker(NodeVisitor):
         # implementations.
         match = AstWalker.__implementsRE.match(self.lines[lineNum])
         if match:
-            self.lines[lineNum] = '{0}## @implements {1}\n{0}{2}\n'.format(
-                match.group(1), match.group(2), self.lines[lineNum].rstrip())
+            self.lines[lineNum] = '{0}## @implements {1}{2}{0}{3}{2}'.format(
+                match.group(1), match.group(2), linesep,
+                self.lines[lineNum].rstrip())
             if self.options.debug:
                 print >> stderr, "# Implements {0}".format(match.group(1))
         # Visit any contained nodes.
