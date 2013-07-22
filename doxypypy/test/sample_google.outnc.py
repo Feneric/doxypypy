@@ -52,11 +52,11 @@ def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
 # @namespace sample_google.SampleClass
 class SampleClass(object):
 
-## @property		likes_spam
-# A boolean indicating if we like SPAM or not.
+    ## @property		likes_spam
+    # A boolean indicating if we like SPAM or not.
 
-## @property		eggs
-# An integer count of the eggs we have laid.
+    ## @property		eggs
+    # An integer count of the eggs we have laid.
 
     ## @brief Inits SampleClass with blah.
     # @namespace sample_google.SampleClass.__init__

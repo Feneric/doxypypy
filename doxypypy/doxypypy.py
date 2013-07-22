@@ -47,7 +47,7 @@ class AstWalker(NodeVisitor):
     # We have a number of regular expressions that we use.  They don't
     # vary across instances and so are compiled directly in the class
     # definition.
-    __indentRE = regexpCompile(r'^(\s*)')
+    __indentRE = regexpCompile(r'^(\s*)\S')
     __newlineRE = regexpCompile(r'^#', MULTILINE)
     __docstrMarkerRE = regexpCompile(r"\s*([uUbB]*[rR]*['\"]{3})")
     __docstrOneLineRE = regexpCompile(r"\s*[uUbB]*[rR]*(['\"]{3})(.+)\1")
@@ -379,8 +379,8 @@ class AstWalker(NodeVisitor):
 
         if defLines:
             match = AstWalker.__indentRE.match(defLines[0])
-            self.docLines = [AstWalker.__newlineRE.sub(match.group(1) + '#',
-                                                       docLine)
+            indentStr = match and match.group(1) or ''
+            self.docLines = [AstWalker.__newlineRE.sub(indentStr + '#', docLine)
                              for docLine in self.docLines]
 
         # Taking away a docstring from an interface method definition sometimes
@@ -389,7 +389,7 @@ class AstWalker(NodeVisitor):
         if typeName != 'Module':
             if docstringStart < len(self.lines):
                 match = AstWalker.__indentRE.match(self.lines[docstringStart])
-                indentStr = match.group(1)
+                indentStr = match and match.group(1) or ''
             else:
                 indentStr = ''
             containingNodes = kwargs.get('containingNodes', []) or []
@@ -412,7 +412,14 @@ class AstWalker(NodeVisitor):
                         break
                 lastVarLineNum += 1
                 if firstVarLineNum < len(self.docLines):
-                    varLines = ['{0}{1}'.format(linesep, docLine)
+                    indentLineNum = endLineNum
+                    indentStr = ''
+                    while not indentStr and indentLineNum < len(self.lines):
+                        match = AstWalker.__indentRE.match(self.lines[indentLineNum])
+                        indentStr = match and match.group(1) or ''
+                        indentLineNum += 1
+                    varLines = ['{0}{1}'.format(linesep, docLine).replace(
+                                linesep, linesep + indentStr)
                                 for docLine in self.docLines[
                                     firstVarLineNum: lastVarLineNum]]
                     defLines.extend(varLines)
@@ -545,11 +552,12 @@ class AstWalker(NodeVisitor):
                 print >> stderr, "# Attribute {0.id}".format(node.targets[0])
         if isinstance(node.targets[0], Name):
             match = AstWalker.__indentRE.match(self.lines[lineNum])
+            indentStr = match and match.group(1) or ''
             restrictionLevel = self._checkMemberName(node.targets[0].id)
             if restrictionLevel:
                 self.lines[lineNum] = '{0}## @var {1}{2}{0}' \
                     '# @hideinitializer{2}{0}# @{3}{2}{4}{2}'.format(
-                        match.group(1),
+                        indentStr,
                         node.targets[0].id,
                         linesep,
                         restrictionLevel,
