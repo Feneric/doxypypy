@@ -518,7 +518,8 @@ class AstWalker(NodeVisitor):
         appropriate Doxygen tags.
         """
         if self.options.debug:
-            print >> stderr, "# Module {0}".format(self.options.fullPathNamespace)
+            stderr.write("# Module {0}{1}".format(self.options.fullPathNamespace,
+                                                  linesep))
         if self.options.autobrief and get_docstring(node):
             self._processDocstring(node)
         # Visit any contained nodes (in this case pretty much everything).
@@ -549,7 +550,8 @@ class AstWalker(NodeVisitor):
                     self.lines[lineNum].rstrip()
                 )
             if self.options.debug:
-                print >> stderr, "# Attribute {0.id}".format(node.targets[0])
+                stderr.write("# Attribute {0.id}{1}".format(node.targets[0],
+                                                            linesep))
         if isinstance(node.targets[0], Name):
             match = AstWalker.__indentRE.match(self.lines[lineNum])
             indentStr = match and match.group(1) or ''
@@ -583,7 +585,8 @@ class AstWalker(NodeVisitor):
                 match.group(1), match.group(2), linesep,
                 self.lines[lineNum].rstrip())
             if self.options.debug:
-                print >> stderr, "# Implements {0}".format(match.group(1))
+                stderr.write("# Implements {0}{1}".format(match.group(1),
+                                                          linesep))
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=kwargs['containingNodes'])
 
@@ -596,7 +599,7 @@ class AstWalker(NodeVisitor):
         interface definition.
         """
         if self.options.debug:
-            print >> stderr, "# Function {0.name}".format(node)
+            stderr.write("# Function {0.name}{1}".format(node, linesep))
         # Push either 'interface' or 'class' onto our containing nodes
         # hierarchy so we can keep track of context.  This will let us tell
         # if a function is nested within another function or even if a class
@@ -637,11 +640,11 @@ class AstWalker(NodeVisitor):
         match = AstWalker.__interfaceRE.match(self.lines[lineNum])
         if match:
             if self.options.debug:
-                print >> stderr, "# Interface {0.name}".format(node)
+                stderr.write("# Interface {0.name}{1}".format(node, linesep))
             containingNodes.append((node.name, 'interface'))
         else:
             if self.options.debug:
-                print >> stderr, "# Class {0.name}".format(node)
+                stderr.write("# Class {0.name}{1}".format(node, linesep))
             containingNodes.append((node.name, 'class'))
         if self.options.topLevelNamespace:
             fullPathNamespace = self._getFullPathName(containingNodes)
@@ -728,7 +731,7 @@ def main():
 
         # Just abort immediately if we are don't have an input file.
         if not filename:
-            print >> stderr, "No filename given."
+            stderr.write("No filename given." + linesep)
             sysExit(-1)
 
         # Turn the full path filename into a full path module location.
