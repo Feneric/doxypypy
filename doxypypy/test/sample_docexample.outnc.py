@@ -29,13 +29,13 @@
 # @exception		AssertionError
 # @exception		ValueError.
 #
-#    Examples:
+# @b     Examples:
 #        >>> myfunction(2, 3)
 #        '5 - 0, whatever.'
 #        >>> myfunction(5, 0, 'oops.')
 #        Traceback (most recent call last):
 #            ...
-# @exception		ZeroDivisionError	integer division or modulo by zero
+# 	ZeroDivisionError	integer division or modulo by zero
 #        >>> myfunction(4, 1, 'got it.')
 #        '5 - 4, got it.'
 #        >>> myfunction(23.5, 23, 'oh well.')

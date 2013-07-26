@@ -82,7 +82,7 @@ class AstWalker(NodeVisitor):
     __listItemRE = regexpCompile(r'([\w\.]+),?\s*')
     __examplesStartRE = regexpCompile(r"^\s*(?:Example|Doctest)s?:\s*$",
                                       IGNORECASE)
-    __reqsStartRE = regexpCompile(r"^(\s*Requirements:?\s*)(.*)$", IGNORECASE)
+    __sectionStartRE = regexpCompile(r"^\s*(([A-Z]\w* ?){1,2}:)\s*$")
     # The error line should match traceback lines, error exception lines, and
     # (due to a weird behavior of codeop) single word lines.
     __errorLineRE = regexpCompile(r"^\s*((?:\S+Error|Traceback.*):?\s*(.*)|@?[\w.]+)\s*$",
@@ -226,7 +226,7 @@ class AstWalker(NodeVisitor):
                                     prefix, match.groupdict())
                         else:
                             match = AstWalker.__raisesStartRE.match(line)
-                            if match:
+                            if match and not inCodeBlock:
                                 # We've got an "exceptions" section
                                 line = line.replace(match.group(0), '').rstrip()
                                 prefix = '@exception\t'
@@ -253,13 +253,13 @@ class AstWalker(NodeVisitor):
                                         line = line.replace(match.group(0),
                                                             ' @b Examples{0}# @code'.format(linesep))
                                     else:
-                                        match = AstWalker.__reqsStartRE.match(line)
+                                        match = AstWalker.__sectionStartRE.match(line)
                                         if match:
-                                            # We've got a requirements section
+                                            # We've got an arbitrary section
                                             prefix = ''
                                             line = line.replace(
                                                 match.group(0),
-                                                ' @b Requirements{0}# '.format(linesep)
+                                                ' @b {0}'.format(match.group(0))
                                             )
                                         elif self.options.autocode and inCodeBlock:
                                             proseChecker.send(
