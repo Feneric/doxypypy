@@ -77,8 +77,10 @@ class AstWalker(NodeVisitor):
     __argsRE = regexpCompile(r"^\s*(?P<name>\w+)\s*(?P<type>\(?\S*\)?)?\s*"
                              r"(?:-|:)+\s+(?P<desc>.+)$")
     __returnsStartRE = regexpCompile(r"^\s*(?:Return|Yield)s:\s*$", IGNORECASE)
-    __raisesStartRE = regexpCompile(r"^\s*Raises:\s*$", IGNORECASE)
-    __listRE = regexpCompile(r"^\s*(([\w\.]+),\s*)+&?\s*([\w\.]+)$")
+    __raisesStartRE = regexpCompile(r"^\s*(Raises|Exceptions|See Also):\s*$",
+                                    IGNORECASE)
+    __listRE = regexpCompile(r"^\s*(([\w\.]+),\s*)+(&|and)?\s*([\w\.]+)$")
+    __singleListItemRE = regexpCompile(r'^\s*([\w\.]+)\s*$')
     __listItemRE = regexpCompile(r'([\w\.]+),?\s*')
     __examplesStartRE = regexpCompile(r"^\s*(?:Example|Doctest)s?:\s*$",
                                       IGNORECASE)
@@ -226,10 +228,14 @@ class AstWalker(NodeVisitor):
                                     prefix, match.groupdict())
                         else:
                             match = AstWalker.__raisesStartRE.match(line)
-                            if match and not inCodeBlock:
-                                # We've got an "exceptions" section
+                            if match:
                                 line = line.replace(match.group(0), '').rstrip()
-                                prefix = '@exception\t'
+                                if 'see' in match.group(1).lower():
+                                    # We've got a "see also" section
+                                    prefix = '@sa\t'
+                                else:
+                                    # We've got an "exceptions" section
+                                    prefix = '@exception\t'
                                 lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                     lines[-1], inCodeBlock)
                                 lines.append('#' + line)
@@ -261,20 +267,26 @@ class AstWalker(NodeVisitor):
                                                 match.group(0),
                                                 ' @b {0}'.format(match.group(0))
                                             )
-                                        elif self.options.autocode and inCodeBlock:
-                                            proseChecker.send(
-                                                (
-                                                    line, lines,
-                                                    lineNum - firstLineNum
+                                        elif prefix:
+                                            match = AstWalker.__singleListItemRE.match(line)
+                                            if match and not inCodeBlock:
+                                                # Probably a single list item
+                                                line = ' {0}\t{1}'.format(
+                                                    prefix, match.group(0))
+                                            elif self.options.autocode and inCodeBlock:
+                                                proseChecker.send(
+                                                    (
+                                                        line, lines,
+                                                        lineNum - firstLineNum
+                                                    )
                                                 )
-                                            )
-                                        elif self.options.autocode:
-                                            codeChecker.send(
-                                                (
-                                                    line, lines,
-                                                    lineNum - firstLineNum
+                                            elif self.options.autocode:
+                                                codeChecker.send(
+                                                    (
+                                                        line, lines,
+                                                        lineNum - firstLineNum
+                                                    )
                                                 )
-                                            )
 
                 # If we were passed a tail, append it to the docstring.
                 # Note that this means that we need a docstring for this
