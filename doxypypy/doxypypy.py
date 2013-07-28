@@ -26,7 +26,7 @@ def coroutine(func):
     def __start(*args, **kwargs):
         """Automatically calls next() on the internal generator function."""
         __cr = func(*args, **kwargs)
-        __cr.next()
+        next(__cr)
         return __cr
     return __start
 
@@ -769,7 +769,7 @@ def main():
     astWalker = AstWalker(lines, options, inFilename)
     astWalker.parseLines()
     # Output the modified source.
-    print astWalker.getLines()
+    print(astWalker.getLines())
 
 # See if we're running as a script.
 if __name__ == "__main__":
