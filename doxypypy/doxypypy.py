@@ -185,7 +185,7 @@ class AstWalker(NodeVisitor):
                 firstLineNum = lineNum
             if line is not None:
                 # Don't bother doing extra work if it's a sentinel.
-                for doxyTag, tagRE in AstWalker.__singleLineREs.iteritems():
+                for doxyTag, tagRE in AstWalker.__singleLineREs.items():
                     match = tagRE.search(line)
                     if match:
                         # We've got a simple one-line Doxygen command
