@@ -181,6 +181,13 @@ class TestDoxypypy(unittest.TestCase):
         sampleName = 'doxypypy/test/sample_google.py'
         self.compareAgainstGoldStandard(sampleName)
 
+    def test_rawdocstringProcessing(self):
+        """
+        Test raw docstrings.
+        """
+        sampleName = 'doxypypy/test/sample_rawdocstring.py'
+        self.compareAgainstGoldStandard(sampleName)
+
     def test_docExampleProcessing(self):
         """
         Test the basic example used in the doxypypy docs.
