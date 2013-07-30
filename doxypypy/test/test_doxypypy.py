@@ -34,12 +34,12 @@ class TestDoxypypy(unittest.TestCase):
         'autobrief autocode debug fullPathNamespace topLevelNamespace'
     )
     __dummySrc = [
-        "print 'testing: one, two, three, & four' " + linesep,
-        "print 'is five.'\t" + linesep
+        "print('testing: one, two, three, & four') " + linesep,
+        "print('is five.')\t" + linesep
     ]
     __strippedDummySrc = linesep.join([
-        "print 'testing: one, two, three, & four'",
-        "print 'is five.'"
+        "print('testing: one, two, three, & four')",
+        "print('is five.')"
     ])
 
     def setUp(self):

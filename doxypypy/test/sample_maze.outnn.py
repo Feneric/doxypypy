@@ -37,6 +37,6 @@ blockGenerator = generateBlock()
 blockCount = 0
 while blockCount < 3200:
     blockCount += 1
-    print blockGenerator.next(),
+    print(next(blockGenerator)),
     # Deal with Python's extra space print weirdness.
     stdout.softspace = False

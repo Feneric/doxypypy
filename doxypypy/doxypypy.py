@@ -138,9 +138,14 @@ class AstWalker(NodeVisitor):
                             lineOfCode = True
                         else:
                             line, lines, lineNum = (yield)
-                            testLine += linesep + line.strip()
-                            testLine = testLine.strip()
-                            testLineNum += 1
+                            line = line.strip()
+                            if line.startswith('>>> '):
+                                # Definitely code, don't compile further.
+                                lineOfCode = True
+                            else:
+                                testLine += linesep + line
+                                testLine = testLine.strip()
+                                testLineNum += 1
                     except (SyntaxError, RuntimeError):
                         # This is definitely not code.
                         lineOfCode = False
