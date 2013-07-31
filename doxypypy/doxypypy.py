@@ -49,7 +49,7 @@ class AstWalker(NodeVisitor):
     # definition.
     __indentRE = regexpCompile(r'^(\s*)\S')
     __newlineRE = regexpCompile(r'^#', MULTILINE)
-    __docstrMarkerRE = regexpCompile(r"\s*([uUbB]*[rR]?['\"]{3})")
+    __docstrMarkerRE = regexpCompile(r"\s*[uUbB]*[rR]?(['\"]{3})")
     __docstrOneLineRE = regexpCompile(r"\s*[uUbB]*[rR]?(['\"]{3})(.+)\1")
 
     __implementsRE = regexpCompile(r"^(\s*)(?:zope\.)?(?:interface\.)?"
@@ -84,7 +84,7 @@ class AstWalker(NodeVisitor):
     __listItemRE = regexpCompile(r'([\w\.]+),?\s*')
     __examplesStartRE = regexpCompile(r"^\s*(?:Example|Doctest)s?:\s*$",
                                       IGNORECASE)
-    __sectionStartRE = regexpCompile(r"^\s*(([A-Z]\w* ?){1,2}:)\s*$")
+    __sectionStartRE = regexpCompile(r"^\s*(([A-Z]\w* ?){1,2}):\s*$")
     # The error line should match traceback lines, error exception lines, and
     # (due to a weird behavior of codeop) single word lines.
     __errorLineRE = regexpCompile(r"^\s*((?:\S+Error|Traceback.*):?\s*(.*)|@?[\w.]+)\s*$",
@@ -361,7 +361,7 @@ class AstWalker(NodeVisitor):
             curLineNum += 1
             while curLineNum < len(self.lines):
                 line = self.lines[curLineNum]
-                if line.find(match.group(1)[-3:]) >= 0:
+                if line.find(match.group(1)) >= 0:
                     break
                 curLineNum += 1
         endLineNum = curLineNum + 1

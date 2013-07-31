@@ -82,7 +82,7 @@ def main():
     """Demonstrate polynomial class."""
     p = Polynomial([0, 1, 0, 2])
 
-    print p.coefficients
+    print(p.coefficients)
 
 
 if __name__ == '__main__':
