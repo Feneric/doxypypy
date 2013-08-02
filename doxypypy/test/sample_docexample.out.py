@@ -25,7 +25,7 @@
 #        A string holding the result.
 #
 #
-## @exception		ZeroDivisionError
+# @exception		ZeroDivisionError
 # @exception		AssertionError
 # @exception		ValueError.
 #

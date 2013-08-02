@@ -254,7 +254,7 @@ class AstWalker(NodeVisitor):
                                                                                     match.group(0))):
                                         itemList.append('# {0}\t{1}{2}'.format(
                                             prefix, itemMatch, linesep))
-                                    line = ''.join(itemList)
+                                    line = ''.join(itemList)[1:]
                                 else:
                                     match = AstWalker.__examplesStartRE.match(line)
                                     if match and lines[-1].strip() == '#' \
