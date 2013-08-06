@@ -60,7 +60,7 @@ class NewStyleSample(object):
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
 
-    #        This will be private.
+    ## @brief         This will be private.
     #
     #
     # @private
@@ -79,7 +79,7 @@ class NewStyleSample(object):
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
 
-    #        This will be protected.
+    ## @brief         This will be protected.
     #
     #
     # @protected
@@ -244,7 +244,7 @@ class OldStyleSample():
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
 
-    #        This will be private.
+    ## @brief         This will be private.
     #
     #
     # @private
@@ -263,7 +263,7 @@ class OldStyleSample():
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
 
-    #        This will be protected.
+    ## @brief         This will be protected.
     #
     #
     # @protected
@@ -418,7 +418,7 @@ def Function():
         _protectedAttr = _protectedFunctionAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
-    #        This will be private.
+    ## @brief         This will be private.
     #
     #
     # @private
@@ -435,7 +435,7 @@ def Function():
         _protectedAttr = _protectedFunctionAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
-    #        This will be protected.
+    ## @brief         This will be protected.
     #
     #
     # @protected
@@ -505,7 +505,7 @@ def _ProtectedFunction():
         _protectedAttr = _protectedFunctionAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
-    #        This will be private.
+    ## @brief         This will be private.
     #
     #
     # @private
@@ -522,7 +522,7 @@ def _ProtectedFunction():
         _protectedAttr = _protectedFunctionAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
-    #        This will be protected.
+    ## @brief         This will be protected.
     #
     #
     # @protected
@@ -592,7 +592,7 @@ def __PrivateFunction():
         _protectedAttr = _protectedFunctionAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
-    #        This will be private.
+    ## @brief         This will be private.
     #
     #
     # @private
@@ -609,7 +609,7 @@ def __PrivateFunction():
         _protectedAttr = _protectedFunctionAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
-    #        This will be protected.
+    ## @brief         This will be protected.
     #
     #
     # @protected

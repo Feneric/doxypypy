@@ -18,6 +18,7 @@ from re import compile as regexpCompile, IGNORECASE, MULTILINE
 from types import GeneratorType
 from sys import stderr
 from os import linesep
+from string import whitespace
 from codeop import compile_command
 
 
@@ -49,7 +50,8 @@ class AstWalker(NodeVisitor):
     # definition.
     __indentRE = regexpCompile(r'^(\s*)\S')
     __newlineRE = regexpCompile(r'^#', MULTILINE)
-    __docstrMarkerRE = regexpCompile(r"\s*[uUbB]*[rR]?(['\"]{3})")
+    __blanklineRE = regexpCompile(r'^\s*$')
+    __docstrMarkerRE = regexpCompile(r"\s*([uUbB]*[rR]?(['\"]{3}))")
     __docstrOneLineRE = regexpCompile(r"\s*[uUbB]*[rR]?(['\"]{3})(.+)\1")
 
     __implementsRE = regexpCompile(r"^(\s*)(?:zope\.)?(?:interface\.)?"
@@ -361,7 +363,7 @@ class AstWalker(NodeVisitor):
             curLineNum += 1
             while curLineNum < len(self.lines):
                 line = self.lines[curLineNum]
-                if line.find(match.group(1)) >= 0:
+                if line.find(match.group(2)) >= 0:
                     break
                 curLineNum += 1
         endLineNum = curLineNum + 1
@@ -389,9 +391,9 @@ class AstWalker(NodeVisitor):
         while len(self.docLines) > 0 and self.docLines[0].lstrip('#').strip() == '':
             del self.docLines[0]
             self.docLines.append('')
-        if len(self.docLines) == 1 or (
-           len(self.docLines) >= 2 and (self.docLines[1][3:].strip() == '' or
-                                        self.docLines[1][3:].lstrip().startswith('@'))):
+        if len(self.docLines) == 1 or (len(self.docLines) >= 2 and (
+            self.docLines[1].strip(whitespace + '#') == '' or
+                self.docLines[1].strip(whitespace + '#').startswith('@'))):
             self.docLines[0] = "## @brief {0}".format(self.docLines[0].lstrip('#'))
 
         if defLines:
