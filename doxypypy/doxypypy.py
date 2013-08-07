@@ -294,6 +294,12 @@ class AstWalker(NodeVisitor):
                                                         lineNum - firstLineNum
                                                     )
                                                 )
+                                        else:
+                                            match = AstWalker.__blanklineRE.match(line)
+                                            if match and not inCodeBlock and \
+                                               lineNum > 0 and lineNum < len(self.docLines) - 1:
+                                                # Put in a paragraph marker
+                                                line = ' @par'
 
                 # If we were passed a tail, append it to the docstring.
                 # Note that this means that we need a docstring for this

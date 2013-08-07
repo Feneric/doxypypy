@@ -6,7 +6,7 @@ complex_zero = 0j
 
 
 ## @brief Form a complex number.
-# @par
+#
 #
 # @param		real	the real part (default 0.0)
 # @param		imag	the imaginary part (default 0.0)

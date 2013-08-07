@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 ## @brief Typical class with private members.
-# @par
+#
 #Here we're just trying to make a fairly straightforward class
 #that has some private (Python-enforced private, name-mangled)
 #and protected (by convention only, a.k.a. "bed lump")
@@ -19,10 +19,11 @@ _protectedModuleAttr = 3
 
 
 ## @brief     A sample new-style class.
-# @par
+#
 #    Nothing special, just a basic new-style class that has some
 #    private and protected members in it.
 #
+# @namespace sample_privacy.NewStyleSample
 class NewStyleSample(object):
 
     __notPrivateClassAttr__ = 1
@@ -37,6 +38,7 @@ class NewStyleSample(object):
 
     ## @brief         This constructor won't be private.
     #
+    # @namespace sample_privacy.NewStyleSample.__init__
 
     def __init__(self):
         self.__notPrivateAttr__ = 1
@@ -45,6 +47,7 @@ class NewStyleSample(object):
 
     ## @brief         This will be not be private.
     #
+    # @namespace sample_privacy.NewStyleSample.__notPrivateClassMethod__
 
     def __notPrivateClassMethod__(self):
         __notPrivateAttr__ = 1
@@ -62,7 +65,7 @@ class NewStyleSample(object):
 
     ## @brief         This will be private.
     #
-    #
+    # @namespace sample_privacy.NewStyleSample.__privateClassMethod
     # @private
 
     def __privateClassMethod(self):
@@ -81,7 +84,7 @@ class NewStyleSample(object):
 
     ## @brief         This will be protected.
     #
-    #
+    # @namespace sample_privacy.NewStyleSample._protectedClassMethod
     # @protected
 
     def _protectedClassMethod(self):
@@ -100,6 +103,7 @@ class NewStyleSample(object):
 
     ## @brief         This will be public.
     #
+    # @namespace sample_privacy.NewStyleSample.publicClassMethod
 
     def publicClassMethod(self):
         public = 0
@@ -119,6 +123,7 @@ class NewStyleSample(object):
 
     ## @brief         This static method will be public.
     #
+    # @namespace sample_privacy.NewStyleSample.publicClassStaticMethod
 
     @staticmethod
     def publicClassStaticMethod():
@@ -135,6 +140,7 @@ class NewStyleSample(object):
 
     ## @brief         This class method will be public.
     #
+    # @namespace sample_privacy.NewStyleSample.publicClassClassMethod
 
     @classmethod
     def publicClassClassMethod(self):
@@ -153,13 +159,15 @@ class NewStyleSample(object):
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
     ## @brief         An inner not private class.
-    # @par
+    #
     #        Nothing special, just a not private helper class.
     #
+    # @namespace sample_privacy.NewStyleSample.__innerNotPrivate__
     class __innerNotPrivate__(object):
 
         ## @brief             This constructor won't be private.
         #
+        # @namespace sample_privacy.NewStyleSample.__innerNotPrivate__.__init__
 
         def __init__(self):
             self.public = 0
@@ -168,15 +176,16 @@ class NewStyleSample(object):
             self._protectedAttr = 3
 
     ## @brief         An inner protected class.
-    # @par
+    #
     #        Nothing special, just a protected helper class.
     #
-    #
+    # @namespace sample_privacy.NewStyleSample.__innerProtected
     # @private
     class __innerProtected(object):
 
         ## @brief             This constructor won't be private.
         #
+        # @namespace sample_privacy.NewStyleSample.__innerProtected.__init__
 
         def __init__(self):
             self.public = 0
@@ -185,15 +194,16 @@ class NewStyleSample(object):
             self._protectedAttr = 3
 
     ## @brief         An inner private class.
-    # @par
+    #
     #        Nothing special, just a private helper class.
     #
-    #
+    # @namespace sample_privacy.NewStyleSample.__innerPrivate
     # @private
     class __innerPrivate(object):
 
         ## @brief             This constructor won't be private.
         #
+        # @namespace sample_privacy.NewStyleSample.__innerPrivate.__init__
 
         def __init__(self):
             self.public = 0
@@ -203,10 +213,11 @@ class NewStyleSample(object):
 
 
 ## @brief     A sample old-style class.
-# @par
+#
 #    Nothing special, just a basic old-style class that has some
 #    private and protected members in it.
 #
+# @namespace sample_privacy.OldStyleSample
 class OldStyleSample():
 
     __notPrivateClassAttr__ = 1
@@ -221,6 +232,7 @@ class OldStyleSample():
 
     ## @brief         This constructor won't be private.
     #
+    # @namespace sample_privacy.OldStyleSample.__init__
 
     def __init__(self):
         self.__notPrivateAttr__ = 1
@@ -229,6 +241,7 @@ class OldStyleSample():
 
     ## @brief         This will be not be private.
     #
+    # @namespace sample_privacy.OldStyleSample.__notPrivateClassMethod__
 
     def __notPrivateClassMethod__(self):
         __notPrivateAttr__ = 1
@@ -246,7 +259,7 @@ class OldStyleSample():
 
     ## @brief         This will be private.
     #
-    #
+    # @namespace sample_privacy.OldStyleSample.__privateClassMethod
     # @private
 
     def __privateClassMethod(self):
@@ -265,7 +278,7 @@ class OldStyleSample():
 
     ## @brief         This will be protected.
     #
-    #
+    # @namespace sample_privacy.OldStyleSample._protectedClassMethod
     # @protected
 
     def _protectedClassMethod(self):
@@ -284,6 +297,7 @@ class OldStyleSample():
 
     ## @brief         This will be public.
     #
+    # @namespace sample_privacy.OldStyleSample.publicClassMethod
 
     def publicClassMethod(self):
         __notPrivateAttr__ = 1
@@ -301,6 +315,7 @@ class OldStyleSample():
 
     ## @brief         This static method will be public.
     #
+    # @namespace sample_privacy.OldStyleSample.publicClassStaticMethod
 
     @staticmethod
     def publicClassStaticMethod():
@@ -317,6 +332,7 @@ class OldStyleSample():
 
     ## @brief         This class method will be public.
     #
+    # @namespace sample_privacy.OldStyleSample.publicClassClassMethod
 
     @classmethod
     def publicClassClassMethod(self):
@@ -337,13 +353,15 @@ class OldStyleSample():
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
     ## @brief         An inner not private class.
-    # @par
+    #
     #        Nothing special, just a not private helper class.
     #
+    # @namespace sample_privacy.OldStyleSample.__innerNotPrivate__
     class __innerNotPrivate__():
 
         ## @brief             This constructor won't be private.
         #
+        # @namespace sample_privacy.OldStyleSample.__innerNotPrivate__.__init__
 
         def __init__(self):
             self.public = 0
@@ -352,15 +370,16 @@ class OldStyleSample():
             self._protectedAttr = 3
 
     ## @brief         An inner protected class.
-    # @par
+    #
     #        Nothing special, just a protected helper class.
     #
-    #
+    # @namespace sample_privacy.OldStyleSample.__innerProtected
     # @private
     class __innerProtected():
 
         ## @brief             This constructor won't be private.
         #
+        # @namespace sample_privacy.OldStyleSample.__innerProtected.__init__
 
         def __init__(self):
             self.public = 0
@@ -369,15 +388,16 @@ class OldStyleSample():
             self._protectedAttr = 3
 
     ## @brief         An inner private class.
-    # @par
+    #
     #        Nothing special, just a private helper class.
     #
-    #
+    # @namespace sample_privacy.OldStyleSample.__innerPrivate
     # @private
     class __innerPrivate():
 
         ## @brief             This constructor won't be private.
         #
+        # @namespace sample_privacy.OldStyleSample.__innerPrivate.__init__
 
         def __init__(self):
             self.public = 0
@@ -387,10 +407,11 @@ class OldStyleSample():
 
 
 ## @brief     A sample function.
-# @par
+#
 #    Nothing special, just a basic function that has some private
 #    and protected variables in it.
 #
+# @namespace sample_privacy.Function
 
 def Function():
     __notPrivateFunctionAttr__ = 1
@@ -405,6 +426,7 @@ def Function():
 
     ## @brief         This will not be private.
     #
+    # @namespace sample_privacy.Function.__notPrivateFunction__
 
     def __notPrivateFunction__():
         __notPrivateAttr__ = __notPrivateFunctionAttr__
@@ -420,7 +442,7 @@ def Function():
 
     ## @brief         This will be private.
     #
-    #
+    # @namespace sample_privacy.Function.__privateNestedFunction
     # @private
 
     def __privateNestedFunction():
@@ -437,7 +459,7 @@ def Function():
 
     ## @brief         This will be protected.
     #
-    #
+    # @namespace sample_privacy.Function._protectedNestedFunction
     # @protected
 
     def _protectedNestedFunction():
@@ -454,6 +476,7 @@ def Function():
 
     ## @brief         This will be public.
     #
+    # @namespace sample_privacy.Function.publicNestedFunction
 
     def publicNestedFunction():
         __notPrivateAttr__ = __notPrivateFunctionAttr__
@@ -472,11 +495,11 @@ def Function():
 
 
 ## @brief     A sample protected function.
-# @par
+#
 #    Nothing special, just a basic protected function that has some
 #    private and protected variables in it.
 #
-#
+# @namespace sample_privacy._ProtectedFunction
 # @protected
 
 def _ProtectedFunction():
@@ -492,6 +515,7 @@ def _ProtectedFunction():
 
     ## @brief         This will not be private.
     #
+    # @namespace sample_privacy._ProtectedFunction.__notPrivateFunction__
 
     def __notPrivateFunction__():
         __notPrivateAttr__ = __notPrivateFunctionAttr__
@@ -507,7 +531,7 @@ def _ProtectedFunction():
 
     ## @brief         This will be private.
     #
-    #
+    # @namespace sample_privacy._ProtectedFunction.__privateNestedFunction
     # @private
 
     def __privateNestedFunction():
@@ -524,7 +548,7 @@ def _ProtectedFunction():
 
     ## @brief         This will be protected.
     #
-    #
+    # @namespace sample_privacy._ProtectedFunction._protectedNestedFunction
     # @protected
 
     def _protectedNestedFunction():
@@ -541,6 +565,7 @@ def _ProtectedFunction():
 
     ## @brief         This will be public.
     #
+    # @namespace sample_privacy._ProtectedFunction.publicNestedFunction
 
     def publicNestedFunction():
         __notPrivateAttr__ = __notPrivateFunctionAttr__
@@ -559,11 +584,11 @@ def _ProtectedFunction():
 
 
 ## @brief     A sample private function.
-# @par
+#
 #    Nothing special, just a basic private function that has some
 #    private and protected variables in it.
 #
-#
+# @namespace sample_privacy.__PrivateFunction
 # @private
 
 def __PrivateFunction():
@@ -579,6 +604,7 @@ def __PrivateFunction():
 
     ## @brief         This will not be private.
     #
+    # @namespace sample_privacy.__PrivateFunction.__notPrivateFunction__
 
     def __notPrivateFunction__():
         __notPrivateAttr__ = __notPrivateFunctionAttr__
@@ -594,7 +620,7 @@ def __PrivateFunction():
 
     ## @brief         This will be private.
     #
-    #
+    # @namespace sample_privacy.__PrivateFunction.__privateNestedFunction
     # @private
 
     def __privateNestedFunction():
@@ -611,7 +637,7 @@ def __PrivateFunction():
 
     ## @brief         This will be protected.
     #
-    #
+    # @namespace sample_privacy.__PrivateFunction._protectedNestedFunction
     # @protected
 
     def _protectedNestedFunction():
@@ -628,6 +654,7 @@ def __PrivateFunction():
 
     ## @brief         This will be public.
     #
+    # @namespace sample_privacy.__PrivateFunction.publicNestedFunction
 
     def publicNestedFunction():
         __notPrivateAttr__ = __notPrivateFunctionAttr__

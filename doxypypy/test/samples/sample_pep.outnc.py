@@ -6,12 +6,13 @@ complex_zero = 0j
 
 
 ## @brief Form a complex number.
-# @par
+#
 #
 # @param		real	the real part (default 0.0)
 # @param		imag	the imaginary part (default 0.0)
 #
 #
+# @namespace sample_pep.complex
 def complex(real=0.0, imag=0.0):
     if imag == 0.0 and real == 0.0:
         return complex_zero

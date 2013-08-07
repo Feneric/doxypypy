@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-## @brief Typical class with private members.
-# @par
-#Here we're just trying to make a fairly straightforward class
-#that has some private (Python-enforced private, name-mangled)
-#and protected (by convention only, a.k.a. "bed lump")
-#variables.
-#
+"""
+Typical class with private members.
 
+Here we're just trying to make a fairly straightforward class
+that has some private (Python-enforced private, name-mangled)
+and protected (by convention only, a.k.a. "bed lump")
+variables.
+"""
 __notPrivateModuleAttr__ = 1
 ## @var __privateModuleAttr
 # @hideinitializer
@@ -18,13 +18,13 @@ __privateModuleAttr = 2
 _protectedModuleAttr = 3
 
 
-## @brief     A sample new-style class.
-# @par
-#    Nothing special, just a basic new-style class that has some
-#    private and protected members in it.
-#
 class NewStyleSample(object):
+    """
+    A sample new-style class.
 
+    Nothing special, just a basic new-style class that has some
+    private and protected members in it.
+    """
     __notPrivateClassAttr__ = 1
     ## @var __privateClassAttr
     # @hideinitializer
@@ -35,18 +35,18 @@ class NewStyleSample(object):
     # @protected
     _protectedClassAttr = 3
 
-    ## @brief         This constructor won't be private.
-    #
-
     def __init__(self):
+        """
+        This constructor won't be private.
+        """
         self.__notPrivateAttr__ = 1
         self.__privateAttr = 2
         self._protectedAttr = 3
 
-    ## @brief         This will be not be private.
-    #
-
     def __notPrivateClassMethod__(self):
+        """
+        This will be not be private.
+        """
         __notPrivateAttr__ = 1
         ## @var __privateAttr
         # @hideinitializer
@@ -59,13 +59,11 @@ class NewStyleSample(object):
         self.__notPrivateAttr__ = __notPrivateAttr__
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
-
-    ## @brief         This will be private.
-    #
-    #
-    # @private
 
     def __privateClassMethod(self):
+        """
+        This will be private.
+        """
         __notPrivateAttr__ = 1
         ## @var __privateAttr
         # @hideinitializer
@@ -78,13 +76,11 @@ class NewStyleSample(object):
         self.__notPrivateAttr__ = __notPrivateAttr__
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
-
-    ## @brief         This will be protected.
-    #
-    #
-    # @protected
 
     def _protectedClassMethod(self):
+        """
+        This will be protected.
+        """
         __notPrivateAttr__ = 1
         ## @var __privateAttr
         # @hideinitializer
@@ -98,10 +94,10 @@ class NewStyleSample(object):
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
 
-    ## @brief         This will be public.
-    #
-
     def publicClassMethod(self):
+        """
+        This will be public.
+        """
         public = 0
         __notPrivateAttr__ = 1
         ## @var __privateAttr
@@ -117,11 +113,11 @@ class NewStyleSample(object):
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
 
-    ## @brief         This static method will be public.
-    #
-
     @staticmethod
     def publicClassStaticMethod():
+        """
+        This static method will be public.
+        """
         __notPrivateAttr__ = 1
         ## @var __privateAttr
         # @hideinitializer
@@ -133,11 +129,11 @@ class NewStyleSample(object):
         _protectedAttr = 3
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
-    ## @brief         This class method will be public.
-    #
-
     @classmethod
     def publicClassClassMethod(self):
+        """
+        This class method will be public.
+        """
         __notPrivateAttr__ = 1
         ## @var __privateAttr
         # @hideinitializer
@@ -152,63 +148,59 @@ class NewStyleSample(object):
         self._protectedAttr = _protectedAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
-    ## @brief         An inner not private class.
-    # @par
-    #        Nothing special, just a not private helper class.
-    #
     class __innerNotPrivate__(object):
+        """
+        An inner not private class.
 
-        ## @brief             This constructor won't be private.
-        #
-
+        Nothing special, just a not private helper class.
+        """
         def __init__(self):
+            """
+            This constructor won't be private.
+            """
             self.public = 0
             self.__notPrivateAttr__ = 1
             self.__privateAttr = 2
             self._protectedAttr = 3
 
-    ## @brief         An inner protected class.
-    # @par
-    #        Nothing special, just a protected helper class.
-    #
-    #
-    # @private
     class __innerProtected(object):
+        """
+        An inner protected class.
 
-        ## @brief             This constructor won't be private.
-        #
-
+        Nothing special, just a protected helper class.
+        """
         def __init__(self):
+            """
+            This constructor won't be private.
+            """
             self.public = 0
             self.__notPrivateAttr__ = 1
             self.__privateAttr = 2
             self._protectedAttr = 3
 
-    ## @brief         An inner private class.
-    # @par
-    #        Nothing special, just a private helper class.
-    #
-    #
-    # @private
     class __innerPrivate(object):
+        """
+        An inner private class.
 
-        ## @brief             This constructor won't be private.
-        #
-
+        Nothing special, just a private helper class.
+        """
         def __init__(self):
+            """
+            This constructor won't be private.
+            """
             self.public = 0
             self.__notPrivateAttr__ = 1
             self.__privateAttr = 2
             self._protectedAttr = 3
 
 
-## @brief     A sample old-style class.
-# @par
-#    Nothing special, just a basic old-style class that has some
-#    private and protected members in it.
-#
 class OldStyleSample():
+    """
+    A sample old-style class.
 
+    Nothing special, just a basic old-style class that has some
+    private and protected members in it.
+    """
     __notPrivateClassAttr__ = 1
     ## @var __privateClassAttr
     # @hideinitializer
@@ -219,18 +211,18 @@ class OldStyleSample():
     # @protected
     _protectedClassAttr = 3
 
-    ## @brief         This constructor won't be private.
-    #
-
     def __init__(self):
+        """
+        This constructor won't be private.
+        """
         self.__notPrivateAttr__ = 1
         self.__privateAttr = 2
         self._protectedAttr = 3
 
-    ## @brief         This will be not be private.
-    #
-
     def __notPrivateClassMethod__(self):
+        """
+        This will be not be private.
+        """
         __notPrivateAttr__ = 1
         ## @var __privateAttr
         # @hideinitializer
@@ -243,13 +235,11 @@ class OldStyleSample():
         self.__notPrivateAttr__ = __notPrivateAttr__
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
-
-    ## @brief         This will be private.
-    #
-    #
-    # @private
 
     def __privateClassMethod(self):
+        """
+        This will be private.
+        """
         __notPrivateAttr__ = 1
         ## @var __privateAttr
         # @hideinitializer
@@ -262,13 +252,11 @@ class OldStyleSample():
         self.__notPrivateAttr__ = __notPrivateAttr__
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
-
-    ## @brief         This will be protected.
-    #
-    #
-    # @protected
 
     def _protectedClassMethod(self):
+        """
+        This will be protected.
+        """
         __notPrivateAttr__ = 1
         ## @var __privateAttr
         # @hideinitializer
@@ -281,11 +269,11 @@ class OldStyleSample():
         self.__notPrivateAttr__ = __notPrivateAttr__
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
-
-    ## @brief         This will be public.
-    #
 
     def publicClassMethod(self):
+        """
+        This will be public.
+        """
         __notPrivateAttr__ = 1
         ## @var __privateAttr
         # @hideinitializer
@@ -298,12 +286,12 @@ class OldStyleSample():
         self.__notPrivateAttr__ = __notPrivateAttr__
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
-
-    ## @brief         This static method will be public.
-    #
 
     @staticmethod
     def publicClassStaticMethod():
+        """
+        This static method will be public.
+        """
         __notPrivateAttr__ = 1
         ## @var __privateAttr
         # @hideinitializer
@@ -315,11 +303,11 @@ class OldStyleSample():
         _protectedAttr = 3
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
-    ## @brief         This class method will be public.
-    #
-
     @classmethod
     def publicClassClassMethod(self):
+        """
+        This class method will be public.
+        """
         public = 0
         __notPrivateAttr__ = 1
         ## @var __privateAttr
@@ -336,63 +324,59 @@ class OldStyleSample():
         self._protectedAttr = _protectedAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
-    ## @brief         An inner not private class.
-    # @par
-    #        Nothing special, just a not private helper class.
-    #
     class __innerNotPrivate__():
+        """
+        An inner not private class.
 
-        ## @brief             This constructor won't be private.
-        #
-
+        Nothing special, just a not private helper class.
+        """
         def __init__(self):
+            """
+            This constructor won't be private.
+            """
             self.public = 0
             self.__notPrivateAttr__ = 1
             self.__privateAttr = 2
             self._protectedAttr = 3
 
-    ## @brief         An inner protected class.
-    # @par
-    #        Nothing special, just a protected helper class.
-    #
-    #
-    # @private
     class __innerProtected():
+        """
+        An inner protected class.
 
-        ## @brief             This constructor won't be private.
-        #
-
+        Nothing special, just a protected helper class.
+        """
         def __init__(self):
+            """
+            This constructor won't be private.
+            """
             self.public = 0
             self.__notPrivateAttr__ = 1
             self.__privateAttr = 2
             self._protectedAttr = 3
 
-    ## @brief         An inner private class.
-    # @par
-    #        Nothing special, just a private helper class.
-    #
-    #
-    # @private
     class __innerPrivate():
+        """
+        An inner private class.
 
-        ## @brief             This constructor won't be private.
-        #
-
+        Nothing special, just a private helper class.
+        """
         def __init__(self):
+            """
+            This constructor won't be private.
+            """
             self.public = 0
             self.__notPrivateAttr__ = 1
             self.__privateAttr = 2
             self._protectedAttr = 3
 
-
-## @brief     A sample function.
-# @par
-#    Nothing special, just a basic function that has some private
-#    and protected variables in it.
-#
 
 def Function():
+    """
+    A sample function.
+
+    Nothing special, just a basic function that has some private
+    and protected variables in it.
+    """
     __notPrivateFunctionAttr__ = 1
     ## @var __privateFunctionAttr
     # @hideinitializer
@@ -403,10 +387,10 @@ def Function():
     # @protected
     _protectedFunctionAttr = 3
 
-    ## @brief         This will not be private.
-    #
-
     def __notPrivateFunction__():
+        """
+        This will not be private.
+        """
         __notPrivateAttr__ = __notPrivateFunctionAttr__
         ## @var __privateAttr
         # @hideinitializer
@@ -417,13 +401,11 @@ def Function():
         # @protected
         _protectedAttr = _protectedFunctionAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
-
-    ## @brief         This will be private.
-    #
-    #
-    # @private
 
     def __privateNestedFunction():
+        """
+        This will be private.
+        """
         __notPrivateAttr__ = __notPrivateFunctionAttr__
         ## @var __privateAttr
         # @hideinitializer
@@ -434,13 +416,11 @@ def Function():
         # @protected
         _protectedAttr = _protectedFunctionAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
-
-    ## @brief         This will be protected.
-    #
-    #
-    # @protected
 
     def _protectedNestedFunction():
+        """
+        This will be protected.
+        """
         __notPrivateAttr__ = __notPrivateFunctionAttr__
         ## @var __privateAttr
         # @hideinitializer
@@ -452,10 +432,10 @@ def Function():
         _protectedAttr = _protectedFunctionAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
-    ## @brief         This will be public.
-    #
-
     def publicNestedFunction():
+        """
+        This will be public.
+        """
         __notPrivateAttr__ = __notPrivateFunctionAttr__
         ## @var __privateAttr
         # @hideinitializer
@@ -470,16 +450,14 @@ def Function():
     return __notPrivateFunction__ + __privateNestedFunction \
         + _protectedNestedFunction + publicNestedFunction
 
-
-## @brief     A sample protected function.
-# @par
-#    Nothing special, just a basic protected function that has some
-#    private and protected variables in it.
-#
-#
-# @protected
 
 def _ProtectedFunction():
+    """
+    A sample protected function.
+
+    Nothing special, just a basic protected function that has some
+    private and protected variables in it.
+    """
     __notPrivateFunctionAttr__ = 1
     ## @var __privateFunctionAttr
     # @hideinitializer
@@ -490,10 +468,10 @@ def _ProtectedFunction():
     # @protected
     _protectedFunctionAttr = 3
 
-    ## @brief         This will not be private.
-    #
-
     def __notPrivateFunction__():
+        """
+        This will not be private.
+        """
         __notPrivateAttr__ = __notPrivateFunctionAttr__
         ## @var __privateAttr
         # @hideinitializer
@@ -504,13 +482,11 @@ def _ProtectedFunction():
         # @protected
         _protectedAttr = _protectedFunctionAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
-
-    ## @brief         This will be private.
-    #
-    #
-    # @private
 
     def __privateNestedFunction():
+        """
+        This will be private.
+        """
         __notPrivateAttr__ = __notPrivateFunctionAttr__
         ## @var __privateAttr
         # @hideinitializer
@@ -521,13 +497,11 @@ def _ProtectedFunction():
         # @protected
         _protectedAttr = _protectedFunctionAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
-
-    ## @brief         This will be protected.
-    #
-    #
-    # @protected
 
     def _protectedNestedFunction():
+        """
+        This will be protected.
+        """
         __notPrivateAttr__ = __notPrivateFunctionAttr__
         ## @var __privateAttr
         # @hideinitializer
@@ -539,10 +513,10 @@ def _ProtectedFunction():
         _protectedAttr = _protectedFunctionAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
-    ## @brief         This will be public.
-    #
-
     def publicNestedFunction():
+        """
+        This will be public.
+        """
         __notPrivateAttr__ = __notPrivateFunctionAttr__
         ## @var __privateAttr
         # @hideinitializer
@@ -558,15 +532,13 @@ def _ProtectedFunction():
         + _protectedNestedFunction + publicNestedFunction
 
 
-## @brief     A sample private function.
-# @par
-#    Nothing special, just a basic private function that has some
-#    private and protected variables in it.
-#
-#
-# @private
-
 def __PrivateFunction():
+    """
+    A sample private function.
+
+    Nothing special, just a basic private function that has some
+    private and protected variables in it.
+    """
     __notPrivateFunctionAttr__ = 1
     ## @var __privateFunctionAttr
     # @hideinitializer
@@ -577,10 +549,10 @@ def __PrivateFunction():
     # @protected
     _protectedFunctionAttr = 3
 
-    ## @brief         This will not be private.
-    #
-
     def __notPrivateFunction__():
+        """
+        This will not be private.
+        """
         __notPrivateAttr__ = __notPrivateFunctionAttr__
         ## @var __privateAttr
         # @hideinitializer
@@ -591,13 +563,11 @@ def __PrivateFunction():
         # @protected
         _protectedAttr = _protectedFunctionAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
-
-    ## @brief         This will be private.
-    #
-    #
-    # @private
 
     def __privateNestedFunction():
+        """
+        This will be private.
+        """
         __notPrivateAttr__ = __notPrivateFunctionAttr__
         ## @var __privateAttr
         # @hideinitializer
@@ -608,13 +578,11 @@ def __PrivateFunction():
         # @protected
         _protectedAttr = _protectedFunctionAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
-
-    ## @brief         This will be protected.
-    #
-    #
-    # @protected
 
     def _protectedNestedFunction():
+        """
+        This will be protected.
+        """
         __notPrivateAttr__ = __notPrivateFunctionAttr__
         ## @var __privateAttr
         # @hideinitializer
@@ -626,10 +594,10 @@ def __PrivateFunction():
         _protectedAttr = _protectedFunctionAttr
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
-    ## @brief         This will be public.
-    #
-
     def publicNestedFunction():
+        """
+        This will be public.
+        """
         __notPrivateAttr__ = __notPrivateFunctionAttr__
         ## @var __privateAttr
         # @hideinitializer

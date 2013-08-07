@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ## @brief Documentation Example
-# @par
+#
 #This is the example used in the doxypypy documentation.
 #It demonstrates basic docstring usage (including doctests).
 #
@@ -9,11 +9,11 @@
 
 
 ## @brief     Does nothing more than demonstrate syntax.
-# @par
+#
 #    This is an example of how a Pythonic human-readable docstring can
 #    get parsed by doxypypy and marked up with Doxygen commands as a
 #    regular input filter to Doxygen.
-# @par
+#
 #
 # @param		arg1	A positional argument.
 # @param		arg2	Another positional argument.

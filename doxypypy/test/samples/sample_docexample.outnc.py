@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ## @brief Documentation Example
-# @par
+#
 #This is the example used in the doxypypy documentation.
 #It demonstrates basic docstring usage (including doctests).
 #
@@ -9,11 +9,11 @@
 
 
 ## @brief     Does nothing more than demonstrate syntax.
-# @par
+#
 #    This is an example of how a Pythonic human-readable docstring can
 #    get parsed by doxypypy and marked up with Doxygen commands as a
 #    regular input filter to Doxygen.
-# @par
+#
 #
 # @param		arg1	A positional argument.
 # @param		arg2	Another positional argument.
@@ -29,14 +29,13 @@
 # @exception		AssertionError
 # @exception		ValueError.
 #
-# @b Examples
-# @code
+# @b     Examples:
 #        >>> myfunction(2, 3)
 #        '5 - 0, whatever.'
 #        >>> myfunction(5, 0, 'oops.')
 #        Traceback (most recent call last):
 #            ...
-#        ZeroDivisionError: integer division or modulo by zero
+# 	ZeroDivisionError	integer division or modulo by zero
 #        >>> myfunction(4, 1, 'got it.')
 #        '5 - 4, got it.'
 #        >>> myfunction(23.5, 23, 'oh well.')
@@ -47,7 +46,6 @@
 #        Traceback (most recent call last):
 #            ...
 #        ValueError
-# @endcode
 #
 # @namespace sample_docexample.myfunction
 

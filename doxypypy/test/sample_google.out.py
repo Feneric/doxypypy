@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 ## @brief Google Python Style Guide SampleClass
-#
+# @par
 #This is basically as close a copy of the Python examples in the Google
 #Python Style Guide as possible while still being valid code.
-#
+# @par
 #http://google-styleguide.googlecode.com/svn/trunk/pyguide.html?showone=Comments#Comments
 #
 
 
 
 ## @brief Fetches rows from a Bigtable.
-#
+# @par
 #    Retrieves rows pertaining to the given keys from the Table instance
 #    represented by big_table.  Silly things may happen if
 #    other_silly_variable is not None.
-#
+# @par
 #
 # @param		big_table	An open Bigtable Table instance.
 # @param		keys	A sequence of strings representing the key of each table row
@@ -45,10 +45,10 @@ def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
 
 
 ## @brief Summary of class here.
-#
+# @par
 #    Longer class information....
 #    Longer class information....
-#
+# @par
 #
 #
 # @namespace sample_google.SampleClass

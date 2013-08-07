@@ -4,12 +4,13 @@
 Generate a simple maze pattern.
 
 Tip of the hat to both the original Commodore 64 program and the book
-"10 Print Chr$(205.5+rnd(1)); Goto 10" that it inspired. Note that this
-is neither the shortest nor the most faithful way to write this program
-in Python. Rather it is being used as a simple example for the doxypypy
-Doxygen input filter for Python and makes use of features like keyword
-arguments and generators and has a docstring that documents them both
-appropriately.
+"10 Print Chr$(205.5+rnd(1)); Goto 10" that it inspired.
+
+Note that this is neither the shortest nor the most faithful way to
+write this program in Python. Rather it is being used as a simple
+example for the doxypypy Doxygen input filter for Python and makes use
+of features like keyword arguments and generators and has a docstring
+that documents them both appropriately.
 """
 
 from sys import stdout
