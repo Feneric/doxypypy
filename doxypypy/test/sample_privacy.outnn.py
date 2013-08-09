@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 ## @brief Typical class with private members.
-# @par
+#
 #Here we're just trying to make a fairly straightforward class
 #that has some private (Python-enforced private, name-mangled)
 #and protected (by convention only, a.k.a. "bed lump")
@@ -19,7 +19,7 @@ _protectedModuleAttr = 3
 
 
 ## @brief     A sample new-style class.
-# @par
+#
 #    Nothing special, just a basic new-style class that has some
 #    private and protected members in it.
 #
@@ -153,7 +153,7 @@ class NewStyleSample(object):
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
     ## @brief         An inner not private class.
-    # @par
+    #
     #        Nothing special, just a not private helper class.
     #
     class __innerNotPrivate__(object):
@@ -168,7 +168,7 @@ class NewStyleSample(object):
             self._protectedAttr = 3
 
     ## @brief         An inner protected class.
-    # @par
+    #
     #        Nothing special, just a protected helper class.
     #
     #
@@ -185,7 +185,7 @@ class NewStyleSample(object):
             self._protectedAttr = 3
 
     ## @brief         An inner private class.
-    # @par
+    #
     #        Nothing special, just a private helper class.
     #
     #
@@ -203,7 +203,7 @@ class NewStyleSample(object):
 
 
 ## @brief     A sample old-style class.
-# @par
+#
 #    Nothing special, just a basic old-style class that has some
 #    private and protected members in it.
 #
@@ -337,7 +337,7 @@ class OldStyleSample():
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
     ## @brief         An inner not private class.
-    # @par
+    #
     #        Nothing special, just a not private helper class.
     #
     class __innerNotPrivate__():
@@ -352,7 +352,7 @@ class OldStyleSample():
             self._protectedAttr = 3
 
     ## @brief         An inner protected class.
-    # @par
+    #
     #        Nothing special, just a protected helper class.
     #
     #
@@ -369,7 +369,7 @@ class OldStyleSample():
             self._protectedAttr = 3
 
     ## @brief         An inner private class.
-    # @par
+    #
     #        Nothing special, just a private helper class.
     #
     #
@@ -387,7 +387,7 @@ class OldStyleSample():
 
 
 ## @brief     A sample function.
-# @par
+#
 #    Nothing special, just a basic function that has some private
 #    and protected variables in it.
 #
@@ -472,7 +472,7 @@ def Function():
 
 
 ## @brief     A sample protected function.
-# @par
+#
 #    Nothing special, just a basic protected function that has some
 #    private and protected variables in it.
 #
@@ -559,7 +559,7 @@ def _ProtectedFunction():
 
 
 ## @brief     A sample private function.
-# @par
+#
 #    Nothing special, just a basic private function that has some
 #    private and protected variables in it.
 #

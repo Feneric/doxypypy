@@ -270,10 +270,17 @@ class AstWalker(NodeVisitor):
                                         if match:
                                             # We've got an arbitrary section
                                             prefix = ''
-                                            line = line.replace(
-                                                match.group(0),
-                                                ' @b {0}'.format(match.group(0))
-                                            )
+                                            if lines[-1] == '# @par':
+                                                lines[-1] = '#'
+                                                line = line.replace(
+                                                    match.group(0),
+                                                    ' @par @b {0}'.format(match.group(0))
+                                                )
+                                            else:
+                                                line = line.replace(
+                                                    match.group(0),
+                                                    ' @b {0}'.format(match.group(0))
+                                                )
                                         elif prefix:
                                             match = AstWalker.__singleListItemRE.match(line)
                                             if match and not inCodeBlock:
@@ -401,6 +408,8 @@ class AstWalker(NodeVisitor):
             self.docLines[1].strip(whitespace + '#') == '' or
                 self.docLines[1].strip(whitespace + '#').startswith('@'))):
             self.docLines[0] = "## @brief {0}".format(self.docLines[0].lstrip('#'))
+            if len(self.docLines) > 1 and self.docLines[1] == '# @par':
+                self.docLines[1] = '#'
 
         if defLines:
             match = AstWalker.__indentRE.match(defLines[0])

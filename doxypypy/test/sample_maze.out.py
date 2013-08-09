@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ## @brief Generate a simple maze pattern.
-# @par
+#
 #Tip of the hat to both the original Commodore 64 program and the book
 #"10 Print Chr$(205.5+rnd(1)); Goto 10" that it inspired.
 # @par
@@ -18,7 +18,7 @@ from random import choice
 
 
 ## @brief     Generates a single block of a maze.
-# @par
+#
 #    This simple generator randomly picks a character from a list (the two
 #    diagonal lines by default) and returns it on each iteration.
 # @par

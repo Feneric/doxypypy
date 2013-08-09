@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 ## @brief Raw docstrings sample module.
-# @par
+#
 #Tests support for raw docstrings, which are necessary when docstrings contain
 #escape sequences.
 # @par
@@ -18,7 +18,7 @@
 
 
 ## @brief Calculate the square-root of four.
-# @par
+#
 # @return
 #        @f$ \sqrt{4} @f$.
 #
@@ -27,7 +27,7 @@ def sqrt4():
 
 
 ## @brief Invert the given number.
-# @par
+#
 #
 # @param		x	Invert this number \f$x\f$.
 #
@@ -39,7 +39,7 @@ def invert(x):
 
 
 ## @brief Stores a polynomial.
-# @par
+#
 #    Here, a polynomial is defined as a finite series of the form
 #    @f[
 #      a_0 + a_1 x + a_2 x^2 + \cdots + a_N x^N,
@@ -55,7 +55,7 @@ class Polynomial(object):
     # A list of coefficients.
 
     ## @brief Initialize a polynomial instance.
-    # @par
+    #
     #
     # @param		coefficients	A list of coefficients. Beginning with \f$a_0\f$,
     #                           and ending with \f$a_N\f$.
@@ -65,7 +65,7 @@ class Polynomial(object):
 
 
     ## @brief Find the real roots of the polynomial.
-    # @par
+    #
     #        I.e. all real numbers @f$ x_i @f$ for which
     #        \f[
     #          a_0 + a_1 x_i + a_2 {x_i}^2 + \cdots + a_N {x_i}^N = 0.
