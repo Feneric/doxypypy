@@ -292,12 +292,12 @@ class AstWalker(NodeVisitor):
                                                 lines[-1] = '#'
                                                 line = line.replace(
                                                     match.group(0),
-                                                    ' @par {0}'.format(match.group(0))
+                                                    ' @par {0}'.format(match.group(1))
                                                 )
                                             else:
                                                 line = line.replace(
                                                     match.group(0),
-                                                    ' @par {0}'.format(match.group(0))
+                                                    ' @par {0}'.format(match.group(1))
                                                 )
                                         elif prefix:
                                             match = AstWalker.__singleListItemRE.match(line)
