@@ -299,6 +299,10 @@ class AstWalker(NodeVisitor):
                                                     match.group(0),
                                                     ' @par {0}'.format(match.group(1))
                                                 )
+                                            lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                                lines[-1], inCodeBlock)
+                                            lines.append('#' + line)
+                                            continue
                                         elif prefix:
                                             match = AstWalker.__singleListItemRE.match(line)
                                             if match and not inCodeBlock:

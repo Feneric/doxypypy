@@ -27,6 +27,7 @@
 #        "Hello World"
 #        >>> function('a', 'b')
 #        "Hello World"
+# @endcode
 #
 # @par Intent
 #        The intent is to demonstrate sections like this one within docstrings.
@@ -36,7 +37,6 @@
 #        That contain multiple lines.
 #
 #    Paragraphs stading by themselves without indention, should be left alone.
-# @endcode
 #
 def function(arg1, arg2):
     return "Hello World"
