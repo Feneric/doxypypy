@@ -13,7 +13,7 @@
 #    This is an example of how a Pythonic human-readable docstring can
 #    get parsed by doxypypy and marked up with Doxygen commands as a
 #    regular input filter to Doxygen.
-# @par
+#
 #
 # @param		arg1	A positional argument.
 # @param		arg2	Another positional argument.
@@ -29,7 +29,7 @@
 # @exception		AssertionError
 # @exception		ValueError.
 #
-# @b     Examples:
+# @par Examples
 #        >>> myfunction(2, 3)
 #        '5 - 0, whatever.'
 #        >>> myfunction(5, 0, 'oops.')

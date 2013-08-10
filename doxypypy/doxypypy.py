@@ -182,6 +182,7 @@ class AstWalker(NodeVisitor):
         lines = []
         timeToSend = False
         inCodeBlock = False
+        inSection = False
         prefix = ''
         firstLineNum = -1
         codeChecker = self._checkIfCode(False)
@@ -203,6 +204,20 @@ class AstWalker(NodeVisitor):
                         firstLineNum = lineNum
                         line = line.replace(match.group(1), doxyTag)
                         timeToSend = True
+
+                if inSection:
+                    # The last line belonged to a section.
+                    # Does this one too? (Ignoring empty lines.)
+                    match = AstWalker.__blanklineRE.match(line)
+                    if not match:
+                        indent = len(line.expandtabs(4)) - len(line.expandtabs(4).lstrip())
+                        if indent <= sectionHeadingIndent:
+                            inSection = False
+                        else:
+                            if lines[-1] == '#':
+                                # If the last line was empty, but we're still in a section
+                                # then we need to start a new paragraph.
+                                lines[-1] = '# @par'
 
                 match = AstWalker.__returnsStartRE.match(line)
                 if match:
@@ -270,17 +285,24 @@ class AstWalker(NodeVisitor):
                                         if match:
                                             # We've got an arbitrary section
                                             prefix = ''
+                                            inSection = True
+                                            # What's the indentation of the section heading?
+                                            sectionHeadingIndent = len(line.expandtabs(4)) - len(line.expandtabs(4).lstrip())
                                             if lines[-1] == '# @par':
                                                 lines[-1] = '#'
                                                 line = line.replace(
                                                     match.group(0),
-                                                    ' @par @b {0}'.format(match.group(0))
+                                                    ' @par {0}'.format(match.group(1))
                                                 )
                                             else:
                                                 line = line.replace(
                                                     match.group(0),
-                                                    ' @b {0}'.format(match.group(0))
+                                                    ' @par {0}'.format(match.group(1))
                                                 )
+                                            lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                                lines[-1], inCodeBlock)
+                                            lines.append('#' + line)
+                                            continue
                                         elif prefix:
                                             match = AstWalker.__singleListItemRE.match(line)
                                             if match and not inCodeBlock:
@@ -301,12 +323,6 @@ class AstWalker(NodeVisitor):
                                                         lineNum - firstLineNum
                                                     )
                                                 )
-                                        else:
-                                            match = AstWalker.__blanklineRE.match(line)
-                                            if match and not inCodeBlock and \
-                                               lineNum > 0 and lineNum < len(self.docLines) - 1:
-                                                # Put in a paragraph marker
-                                                line = ' @par'
 
                 # If we were passed a tail, append it to the docstring.
                 # Note that this means that we need a docstring for this
