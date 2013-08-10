@@ -4,14 +4,14 @@
 #
 #Tests support for raw docstrings, which are necessary when docstrings contain
 #escape sequences.
-# @par
+#
 #E.g. TeX-maths:
 #@f[
 #  \exp(x) = \sum_{k=0}^{\infty} \frac{x^k}{k!}
 #@f]
-# @par
+#
 #Related to issue #8 [1].
-# @par
+#
 #[1]: https://github.com/Feneric/doxypypy/issues/8
 #
 
@@ -48,7 +48,7 @@ def invert(x):
 #    @f]
 #    where \f$ a_k \f$, for \f$k=0,\ldots,N\f$, are real coefficients, and
 #    \f$N\f$ is the degree of the polynomial.
-# @par
+#
 #
 #
 # @namespace sample_rawdocstring.Polynomial
@@ -74,7 +74,7 @@ class Polynomial(object):
     #        \f[
     #          a_0 + a_1 x_i + a_2 {x_i}^2 + \cdots + a_N {x_i}^N = 0.
     #        \f]
-    # @par
+    #
     # @return
     #            A list of all real roots, or an empty list if there are none.
     #

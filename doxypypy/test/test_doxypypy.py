@@ -188,6 +188,13 @@ class TestDoxypypy(unittest.TestCase):
         sampleName = 'doxypypy/test/sample_rawdocstring.py'
         self.compareAgainstGoldStandard(sampleName)
 
+    def test_sectionsProcessing(self):
+        """
+        Test arbitrary sections handling.
+        """
+        sampleName = 'doxypypy/test/sample_sections.py'
+        self.compareAgainstGoldStandard(sampleName)
+
     def test_docExampleProcessing(self):
         """
         Test the basic example used in the doxypypy docs.
