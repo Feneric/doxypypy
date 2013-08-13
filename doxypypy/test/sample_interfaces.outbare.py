@@ -1,60 +1,82 @@
 # -*- coding: utf-8 -*-
-"""
-Typical interfaces definition.
-
-Here we're just trying to make some typical interface definitions
-to better test the doxypypy filter.
-"""
+##
+#Typical interfaces definition.
+#
+#Here we're just trying to make some typical interface definitions
+#to better test the doxypypy filter.
+#
 
 from zope.interface import Interface, Attribute
 
 # Public API Interfaces
 
 
+##
+#    The zeroth sample interface.
+#
+#    Nothing special, just a sample interface to help test the
+#    filter. This is a special case commonly known as a "marker
+#    interface" that declares neither methods nor attributes.
+#
+#
+# @interface INul
 class INul(Interface):
-    """
-    The zeroth sample interface.
 
-    Nothing special, just a sample interface to help test the
-    filter. This is a special case commonly known as a "marker
-    interface" that declares neither methods nor attributes.
-    """
+    pass
 
 
+##
+#    The first sample interface.
+#
+#    Nothing special, just a sample interface to help test the
+#    filter. This one has just a single method.
+#
+#
+# @interface IUnu
 class IUnu(Interface):
-    """
-    The first sample interface.
 
-    Nothing special, just a sample interface to help test the
-    filter. This one has just a single method.
-    """
+    pass
 
+    ##The first method offered for the first interface.
     def unuMethod(unuArg, *args):
-        """The first method offered for the first interface."""
+
+        pass
 
 
+##
+#    The second sample interface.
+#
+#    Nothing special, just a sample interface to help test the
+#    filter. This one has multiple methods.
+#
+#
+# @interface IDu
 class IDu(Interface):
-    """
-    The second sample interface.
 
-    Nothing special, just a sample interface to help test the
-    filter. This one has multiple methods.
-    """
+    pass
 
+    ##The first method offered for the second interface.
     def duMethod(duArg1, duArg2):
-        """The first method offered for the second interface."""
 
+        pass
+
+    ##The second method offered for the second interface.
     def duMethod2(duArg1, **kwargs):
-        """The second method offered for the second interface."""
+
+        pass
 
 
+##
+#    The third sample interface.
+#
+#    Nothing special, just a sample interface to help test the
+#    filter. This one has just a single attribute.
+#
+#
+# @interface ITri
 class ITri(Interface):
-    """
-    The third sample interface.
 
-    Nothing special, just a sample interface to help test the
-    filter. This one has just a single attribute.
-    """
+    pass
 
     ## @property triAttr
     # the first attribute for the third interface
@@ -62,13 +84,17 @@ class ITri(Interface):
     triAttr = Attribute('the first attribute for the third interface')
 
 
+##
+#    The fourth sample interface.
+#
+#    Nothing special, just a sample interface to help test the
+#    filter. This one has multiple attributes.
+#
+#
+# @interface IKvar
 class IKvar(Interface):
-    """
-    The fourth sample interface.
 
-    Nothing special, just a sample interface to help test the
-    filter. This one has multiple attributes.
-    """
+    pass
 
     ## @property kvarAttr1
     # the first attribute for the fourth interface
@@ -81,14 +107,18 @@ class IKvar(Interface):
     kvarAttr2 = Attribute('the second attribute for the fourth interface')
 
 
+##
+#    The fifth sample interface.
+#
+#    Nothing special, just a sample interface to help test the
+#    filter. This one opens things up a little and has multiple
+#    attributes and methods.
+#
+#
+# @interface IKvin
 class IKvin(Interface):
-    """
-    The fifth sample interface.
 
-    Nothing special, just a sample interface to help test the
-    filter. This one opens things up a little and has multiple
-    attributes and methods.
-    """
+    pass
 
     ## @property kvinAttr1
     # the first attribute for the fifth interface
@@ -100,16 +130,22 @@ class IKvin(Interface):
     # @hideinitializer
     kvinAttr2 = Attribute('the second attribute for the fifth interface')
 
+    ##The first method offered for the fifth interface.
     def kvinMethod(kvinArg1, kvinArg2, *args, **kwargs):
-        """The first method offered for the fifth interface."""
 
+        pass
+
+    ##The second method offered for the fifth interface.
     def kvinMethod2(kvinArg1, kvinArg2='default'):
-        """The second method offered for the fifth interface."""
+
+        pass
 
     ## @property kvinAttr3
     # the third attribute for the fifth interface
     # @hideinitializer
     kvinAttr3 = Attribute('the third attribute for the fifth interface')
 
+    ##The third method offered for the fifth interface.
     def kvinMethod3(kvinArg1, kvinArg2='default'):
-        """The third method offered for the fifth interface."""
+
+        pass
