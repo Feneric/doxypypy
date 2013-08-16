@@ -291,17 +291,12 @@ class AstWalker(NodeVisitor):
                                                 # What's the indentation of the section heading?
                                                 sectionHeadingIndent = len(line.expandtabs(4)) \
                                                     - len(line.expandtabs(4).lstrip())
+                                                line = line.replace(
+                                                    match.group(0),
+                                                    ' @par {0}'.format(match.group(1))
+                                                )
                                                 if lines[-1] == '# @par':
                                                     lines[-1] = '#'
-                                                    line = line.replace(
-                                                        match.group(0),
-                                                        ' @par {0}'.format(match.group(1))
-                                                    )
-                                                else:
-                                                    line = line.replace(
-                                                        match.group(0),
-                                                        ' @par {0}'.format(match.group(1))
-                                                    )
                                                 lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                                     lines[-1], inCodeBlock)
                                                 lines.append('#' + line)
