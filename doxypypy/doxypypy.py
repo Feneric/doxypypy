@@ -212,7 +212,8 @@ class AstWalker(NodeVisitor):
                         # Does this one too? (Ignoring empty lines.)
                         match = AstWalker.__blanklineRE.match(line)
                         if not match:
-                            indent = len(line.expandtabs(4)) - len(line.expandtabs(4).lstrip())
+                            indent = len(line.expandtabs(self.options.tablength)) - \
+                                len(line.expandtabs(self.options.tablength).lstrip())
                             if indent <= sectionHeadingIndent:
                                 inSection = False
                             else:
@@ -289,8 +290,8 @@ class AstWalker(NodeVisitor):
                                                 prefix = ''
                                                 inSection = True
                                                 # What's the indentation of the section heading?
-                                                sectionHeadingIndent = len(line.expandtabs(4)) \
-                                                    - len(line.expandtabs(4).lstrip())
+                                                sectionHeadingIndent = len(line.expandtabs(self.options.tablength)) \
+                                                    - len(line.expandtabs(self.options.tablength).lstrip())
                                                 line = line.replace(
                                                     match.group(0),
                                                     ' @par {0}'.format(match.group(1))
@@ -766,6 +767,11 @@ def main():
             action="store", type="string", dest="topLevelNamespace",
             help="specify a top-level namespace that will be used to trim paths"
         )
+        parser.add_option(
+            "-t", "--tablength",
+            action="store", type="int", dest="tablength", default=4,
+            help="specify a tab length in spaces; only needed if tabs are used"
+        )
         group = OptionGroup(parser, "Debug Options")
         group.add_option(
             "-d", "--debug",
@@ -791,6 +797,7 @@ def main():
             if namespaceStart >= 0:
                 realNamespace = fullPathNamespace[namespaceStart:]
         options.fullPathNamespace = realNamespace
+        print(options)
 
         return options, filename[0]
 
