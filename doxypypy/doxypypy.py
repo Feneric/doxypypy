@@ -136,7 +136,7 @@ class AstWalker(NodeVisitor):
                 else:
                     try:
                         compLine = compile_command(testLine)
-                        if compLine and lines[currentLineNum].strip() == '#':
+                        if compLine and lines[currentLineNum].strip().startswith('#'):
                             lineOfCode = True
                         else:
                             line, lines, lineNum = (yield)
