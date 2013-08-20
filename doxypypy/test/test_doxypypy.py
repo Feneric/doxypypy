@@ -79,6 +79,40 @@ class TestDoxypypy(unittest.TestCase):
             self.assertEqual(self.dummyWalker._endCodeIfNeeded(*pair[0]),
                              pair[1])
 
+    def test_checkIfCode(self):
+        """
+        Tests the checkIfCode method on the code side.
+        """
+        codeChecker = self.dummyWalker._checkIfCode(False)
+        testLines = [
+            'This is prose, not code.',
+            '...',
+            '>>> print("Now we have code.")'
+        ]
+        outputLines = [
+            'This is prose, not code.',
+            '...{0}# @code{0}'.format(linesep),
+            '>>> print("Now we have code.")'
+        ]
+        for lineNum, line in enumerate(testLines):
+            codeChecker.send((line, testLines, lineNum))
+        self.assertEqual(testLines, outputLines)
+
+    def test_checkIfProse(self):
+        """
+        Tests the checkIfCode method on the prose side.
+        """
+        proseChecker = self.dummyWalker._checkIfCode(True)
+        testLines = [
+            'This is prose, not code.'
+        ]
+        outputLines = [
+            '# @endcode\nThis is prose, not code.'
+        ]
+        for lineNum, line in enumerate(testLines):
+            proseChecker.send((line, testLines, lineNum))
+        self.assertEqual(testLines, outputLines)
+
     def test_checkMemberName(self):
         """
         Test the checkMemberName method.
