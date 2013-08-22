@@ -10,6 +10,7 @@ import unittest
 from collections import namedtuple
 from os import linesep, sep
 from os.path import join, basename, splitext
+from ast import parse
 # The following little bit of hackery makes for convenient out-of-module
 # testing.  It changes to the top-level directory of the module, changes
 # the import path, and does a direct import.
@@ -41,14 +42,117 @@ class TestDoxypypy(unittest.TestCase):
         "print('testing: one, two, three, & four')",
         "print('is five.')"
     ])
+    __sampleBasics = [
+        {
+            'name': 'basicfunction',
+            'visitor': 'visit_FunctionDef',
+            'inputCode': '''def testFunctionBrief():
+                """Here is the brief.
+
+                Here is the body. Unlike the brief
+                it has multiple lines."""''',
+            'expectedOutput': [
+                '## @brief Here is the brief.',
+                '#',
+                '#                Here is the body. Unlike the brief',
+                '#                it has multiple lines.\n# @namespace dummy.testFunctionBrief',
+                'def testFunctionBrief():'
+            ]
+        }
+    ]
+    __sampleArgs = [
+        {
+            'name': 'onearg',
+            'visitor': 'visit_FunctionDef',
+            'inputCode': '''def testFunctionArg(arg):
+                """Here is the brief.
+                Args:
+                arg -- a test argument."""''',
+            'expectedOutput': [
+                '## @brief Here is the brief.',
+                '#',
+                '# @param\t\targ\ta test argument.\n# @namespace dummy.testFunctionArg',
+                'def testFunctionArg(arg):'
+            ]
+        },
+        {
+            'name': 'multipleargs',
+            'visitor': 'visit_FunctionDef',
+            'inputCode': '''def testFunctionArgs(arg1, arg2, arg3):
+                """Here is the brief.
+                Arguments:
+                arg1: a test argument.
+                arg2: another test argument.
+                arg3: yet another test argument."""''',
+            'expectedOutput': [
+                '## @brief Here is the brief.',
+                '#',
+                '# @param\t\targ1\ta test argument.',
+                '# @param\t\targ2\tanother test argument.',
+                '# @param\t\targ3\tyet another test argument.\n# @namespace dummy.testFunctionArgs',
+                'def testFunctionArgs(arg1, arg2, arg3):'
+            ]
+        }
+    ]
+    __sampleReturns = [
+        {
+            'name': 'returns',
+            'visitor': 'visit_FunctionDef',
+            'inputCode': '''def testFunctionReturns():
+                """Here is the brief.
+                Returns:
+                Good stuff."""''',
+            'expectedOutput': [
+                '## @brief Here is the brief.',
+                '# @return',
+                '#                Good stuff.\n# @namespace dummy.testFunctionReturns',
+                'def testFunctionReturns():'
+            ]
+        }
+    ]
+    __sampleRaises = [
+        {
+            'name': 'oneraises',
+            'visitor': 'visit_FunctionDef',
+            'inputCode': '''def testFunctionRaisesOne():
+                """Here is the brief.
+                Raises:
+                MyException: bang bang a boom."""''',
+            'expectedOutput': [
+                '## @brief Here is the brief.',
+                '#',
+                '# @exception\t\tMyException\tbang bang a boom.\n# @namespace dummy.testFunctionRaisesOne',
+                'def testFunctionRaisesOne():'
+            ]
+        },
+        {
+            'name': 'multipleraises',
+            'visitor': 'visit_FunctionDef',
+            'inputCode': '''def testFunctionRaisesMultiple():
+                """Here is the brief.
+                Raises:
+                MyException1 -- bang bang a boom.
+                MyException2 -- crash.
+                MyException3 -- splatter."""''',
+            'expectedOutput': [
+                '## @brief Here is the brief.',
+                '#',
+                '# @exception\t\tMyException1\tbang bang a boom.',
+                '# @exception\t\tMyException2\tcrash.',
+                '# @exception\t\tMyException3\tsplatter.\n# @namespace dummy.testFunctionRaisesMultiple',
+                'def testFunctionRaisesMultiple():'
+            ]
+        }
+    ]
 
     def setUp(self):
         """
         Sets up a temporary AST for use with our unit tests.
         """
-        options = TestDoxypypy.__Options(True, True, True, 'dummy', 'dummy', 4)
+        self.options = TestDoxypypy.__Options(True, True, True,
+                                              'dummy', 'dummy', 4)
         self.dummyWalker = AstWalker(TestDoxypypy.__dummySrc,
-                                     options, 'dummy.py')
+                                     self.options, 'dummy.py')
 
     def test_stripOutAnds(self):
         """
@@ -151,6 +255,41 @@ class TestDoxypypy(unittest.TestCase):
         self.dummyWalker.parseLines()
         self.assertEqual(self.dummyWalker.getLines(),
                          TestDoxypypy.__strippedDummySrc)
+
+    def snippetComparison(self, sampleSnippets):
+        """
+        Compare docstring parsing for a list of code snippets.
+        """
+        for snippetTest in sampleSnippets:
+            testWalker = AstWalker(snippetTest['inputCode'].split(linesep),
+                                   self.options, snippetTest['name'] + '.py')
+            funcAst = parse(snippetTest['inputCode'])
+            getattr(testWalker, snippetTest['visitor'])(funcAst.body[0])
+            self.assertEqual(testWalker.lines, snippetTest['expectedOutput'])
+
+    def test_sampleBasics(self):
+        """
+        Tests the proper handling of basic docstrings.
+        """
+        self.snippetComparison(TestDoxypypy.__sampleBasics)
+
+    def test_sampleArgs(self):
+        """
+        Tests the proper handling of arguments in function docstrings.
+        """
+        self.snippetComparison(TestDoxypypy.__sampleArgs)
+
+    def test_sampleReturns(self):
+        """
+        Tests the proper handling of returns in function docstrings.
+        """
+        self.snippetComparison(TestDoxypypy.__sampleReturns)
+
+    def test_sampleRaises(self):
+        """
+        Tests the proper handling of raises in function docstrings.
+        """
+        self.snippetComparison(TestDoxypypy.__sampleRaises)
 
     @staticmethod
     def readAndParseFile(inFilename, options):
