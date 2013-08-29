@@ -58,6 +58,22 @@ class TestDoxypypy(unittest.TestCase):
                 '#                it has multiple lines.\n# @namespace dummy.testFunctionBrief',
                 'def testFunctionBrief():'
             ]
+        },
+        {
+            'name': 'basicclass',
+            'visitor': 'visit_ClassDef',
+            'inputCode': '''class testClassBrief(object):
+                """Here is the brief.
+
+                Here is the body. Unlike the brief
+                it has multiple lines."""''',
+            'expectedOutput': [
+                '## @brief Here is the brief.',
+                '#',
+                '#                Here is the body. Unlike the brief',
+                '#                it has multiple lines.\n# @namespace dummy.testClassBrief',
+                'class testClassBrief(object):'
+            ]
         }
     ]
     __sampleArgs = [
@@ -91,6 +107,32 @@ class TestDoxypypy(unittest.TestCase):
                 '# @param\t\targ2\tanother test argument.',
                 '# @param\t\targ3\tyet another test argument.\n# @namespace dummy.testFunctionArgs',
                 'def testFunctionArgs(arg1, arg2, arg3):'
+            ]
+        },
+        {
+            'name': 'multiplelineargs',
+            'visitor': 'visit_FunctionDef',
+            'inputCode': '''def testFunctionArgsMulti(
+                        arg1,
+                        arg2,
+                        arg3
+                    ):
+                """Here is the brief.
+                Arguments:
+                arg1: a test argument.
+                arg2: another test argument.
+                arg3: yet another test argument."""''',
+            'expectedOutput': [
+                '## @brief Here is the brief.',
+                '#',
+                '# @param\t\targ1\ta test argument.',
+                '# @param\t\targ2\tanother test argument.',
+                '# @param\t\targ3\tyet another test argument.\n# @namespace dummy.testFunctionArgsMulti',
+                'def testFunctionArgsMulti(',
+                '                        arg1,',
+                '                        arg2,',
+                '                        arg3',
+                '                    ):'
             ]
         }
     ]
@@ -149,7 +191,7 @@ class TestDoxypypy(unittest.TestCase):
         """
         Sets up a temporary AST for use with our unit tests.
         """
-        self.options = TestDoxypypy.__Options(True, True, True,
+        self.options = TestDoxypypy.__Options(True, True, False,
                                               'dummy', 'dummy', 4)
         self.dummyWalker = AstWalker(TestDoxypypy.__dummySrc,
                                      self.options, 'dummy.py')

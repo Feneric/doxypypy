@@ -456,24 +456,25 @@ class AstWalker(NodeVisitor):
                     if '@property\t' in firstVarLine:
                         break
                 lastVarLineNum = len(self.docLines)
-                while lastVarLineNum > firstVarLineNum:
-                    lastVarLineNum -= 1
-                    if '@property\t' in self.docLines[lastVarLineNum]:
-                        break
-                lastVarLineNum += 1
-                if firstVarLineNum < len(self.docLines):
-                    indentLineNum = endLineNum
-                    indentStr = ''
-                    while not indentStr and indentLineNum < len(self.lines):
-                        match = AstWalker.__indentRE.match(self.lines[indentLineNum])
-                        indentStr = match and match.group(1) or ''
-                        indentLineNum += 1
-                    varLines = ['{0}{1}'.format(linesep, docLine).replace(
-                                linesep, linesep + indentStr)
-                                for docLine in self.docLines[
-                                    firstVarLineNum: lastVarLineNum]]
-                    defLines.extend(varLines)
-                    self.docLines[firstVarLineNum: lastVarLineNum] = []
+                if '@property\t' in firstVarLine:
+                    while lastVarLineNum > firstVarLineNum:
+                        lastVarLineNum -= 1
+                        if '@property\t' in self.docLines[lastVarLineNum]:
+                            break
+                    lastVarLineNum += 1
+                    if firstVarLineNum < len(self.docLines):
+                        indentLineNum = endLineNum
+                        indentStr = ''
+                        while not indentStr and indentLineNum < len(self.lines):
+                            match = AstWalker.__indentRE.match(self.lines[indentLineNum])
+                            indentStr = match and match.group(1) or ''
+                            indentLineNum += 1
+                        varLines = ['{0}{1}'.format(linesep, docLine).replace(
+                                    linesep, linesep + indentStr)
+                                    for docLine in self.docLines[
+                                        firstVarLineNum: lastVarLineNum]]
+                        defLines.extend(varLines)
+                        self.docLines[firstVarLineNum: lastVarLineNum] = []
 
         # For classes and functions, apply our changes and reverse the
         # order of the declaration and docstring, and for modules just
@@ -797,7 +798,6 @@ def main():
             if namespaceStart >= 0:
                 realNamespace = fullPathNamespace[namespaceStart:]
         options.fullPathNamespace = realNamespace
-        print(options)
 
         return options, filename[0]
 

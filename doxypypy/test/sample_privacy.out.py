@@ -24,8 +24,8 @@ _protectedModuleAttr = 3
 #    private and protected members in it.
 #
 # @namespace sample_privacy.NewStyleSample
-class NewStyleSample(object):
 
+class NewStyleSample(object):
     __notPrivateClassAttr__ = 1
     ## @var __privateClassAttr
     # @hideinitializer
@@ -163,8 +163,8 @@ class NewStyleSample(object):
     #        Nothing special, just a not private helper class.
     #
     # @namespace sample_privacy.NewStyleSample.__innerNotPrivate__
-    class __innerNotPrivate__(object):
 
+    class __innerNotPrivate__(object):
         ## @brief             This constructor won't be private.
         #
         # @namespace sample_privacy.NewStyleSample.__innerNotPrivate__.__init__
@@ -181,8 +181,8 @@ class NewStyleSample(object):
     #
     # @namespace sample_privacy.NewStyleSample.__innerProtected
     # @private
-    class __innerProtected(object):
 
+    class __innerProtected(object):
         ## @brief             This constructor won't be private.
         #
         # @namespace sample_privacy.NewStyleSample.__innerProtected.__init__
@@ -199,8 +199,8 @@ class NewStyleSample(object):
     #
     # @namespace sample_privacy.NewStyleSample.__innerPrivate
     # @private
-    class __innerPrivate(object):
 
+    class __innerPrivate(object):
         ## @brief             This constructor won't be private.
         #
         # @namespace sample_privacy.NewStyleSample.__innerPrivate.__init__
@@ -218,8 +218,8 @@ class NewStyleSample(object):
 #    private and protected members in it.
 #
 # @namespace sample_privacy.OldStyleSample
-class OldStyleSample():
 
+class OldStyleSample():
     __notPrivateClassAttr__ = 1
     ## @var __privateClassAttr
     # @hideinitializer
@@ -357,8 +357,8 @@ class OldStyleSample():
     #        Nothing special, just a not private helper class.
     #
     # @namespace sample_privacy.OldStyleSample.__innerNotPrivate__
-    class __innerNotPrivate__():
 
+    class __innerNotPrivate__():
         ## @brief             This constructor won't be private.
         #
         # @namespace sample_privacy.OldStyleSample.__innerNotPrivate__.__init__
@@ -375,8 +375,8 @@ class OldStyleSample():
     #
     # @namespace sample_privacy.OldStyleSample.__innerProtected
     # @private
-    class __innerProtected():
 
+    class __innerProtected():
         ## @brief             This constructor won't be private.
         #
         # @namespace sample_privacy.OldStyleSample.__innerProtected.__init__
@@ -393,8 +393,8 @@ class OldStyleSample():
     #
     # @namespace sample_privacy.OldStyleSample.__innerPrivate
     # @private
-    class __innerPrivate():
 
+    class __innerPrivate():
         ## @brief             This constructor won't be private.
         #
         # @namespace sample_privacy.OldStyleSample.__innerPrivate.__init__

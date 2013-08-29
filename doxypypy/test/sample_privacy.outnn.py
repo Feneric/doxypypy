@@ -23,8 +23,8 @@ _protectedModuleAttr = 3
 #    Nothing special, just a basic new-style class that has some
 #    private and protected members in it.
 #
-class NewStyleSample(object):
 
+class NewStyleSample(object):
     __notPrivateClassAttr__ = 1
     ## @var __privateClassAttr
     # @hideinitializer
@@ -156,8 +156,8 @@ class NewStyleSample(object):
     #
     #        Nothing special, just a not private helper class.
     #
-    class __innerNotPrivate__(object):
 
+    class __innerNotPrivate__(object):
         ## @brief             This constructor won't be private.
         #
 
@@ -173,8 +173,8 @@ class NewStyleSample(object):
     #
     #
     # @private
-    class __innerProtected(object):
 
+    class __innerProtected(object):
         ## @brief             This constructor won't be private.
         #
 
@@ -190,8 +190,8 @@ class NewStyleSample(object):
     #
     #
     # @private
-    class __innerPrivate(object):
 
+    class __innerPrivate(object):
         ## @brief             This constructor won't be private.
         #
 
@@ -207,8 +207,8 @@ class NewStyleSample(object):
 #    Nothing special, just a basic old-style class that has some
 #    private and protected members in it.
 #
-class OldStyleSample():
 
+class OldStyleSample():
     __notPrivateClassAttr__ = 1
     ## @var __privateClassAttr
     # @hideinitializer
@@ -340,8 +340,8 @@ class OldStyleSample():
     #
     #        Nothing special, just a not private helper class.
     #
-    class __innerNotPrivate__():
 
+    class __innerNotPrivate__():
         ## @brief             This constructor won't be private.
         #
 
@@ -357,8 +357,8 @@ class OldStyleSample():
     #
     #
     # @private
-    class __innerProtected():
 
+    class __innerProtected():
         ## @brief             This constructor won't be private.
         #
 
@@ -374,8 +374,8 @@ class OldStyleSample():
     #
     #
     # @private
-    class __innerPrivate():
 
+    class __innerPrivate():
         ## @brief             This constructor won't be private.
         #
 
