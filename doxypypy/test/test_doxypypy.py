@@ -44,6 +44,26 @@ class TestDoxypypy(unittest.TestCase):
     ])
     __sampleBasics = [
         {
+            'name': 'onelinefunction',
+            'visitor': 'visit_FunctionDef',
+            'inputCode': '''def testFunctionOneLine():
+                """Here is the brief."""''',
+            'expectedOutput': [
+                '## @brief Here is the brief.\n# @namespace dummy.testFunctionOneLine',
+                'def testFunctionOneLine():'
+            ]
+        },
+        {
+            'name': 'onelineclass',
+            'visitor': 'visit_ClassDef',
+            'inputCode': '''class testClassOneLine(object):
+                """Here is the brief."""''',
+            'expectedOutput': [
+                '## @brief Here is the brief.\n# @namespace dummy.testClassOneLine',
+                'class testClassOneLine(object):'
+            ]
+        },
+        {
             'name': 'basicfunction',
             'visitor': 'visit_FunctionDef',
             'inputCode': '''def testFunctionBrief():
@@ -73,6 +93,30 @@ class TestDoxypypy(unittest.TestCase):
                 '#                Here is the body. Unlike the brief',
                 '#                it has multiple lines.\n# @namespace dummy.testClassBrief',
                 'class testClassBrief(object):'
+            ]
+        },
+        {
+            'name': 'basicfunctionnobrief',
+            'visitor': 'visit_FunctionDef',
+            'inputCode': '''def testFunctionNoBrief():
+                """Here is the body. It's not a brief as
+                it has multiple lines."""''',
+            'expectedOutput': [
+                "##Here is the body. It's not a brief as",
+                '#                it has multiple lines.\n# @namespace dummy.testFunctionNoBrief',
+                'def testFunctionNoBrief():'
+            ]
+        },
+        {
+            'name': 'basicclassnobrief',
+            'visitor': 'visit_ClassDef',
+            'inputCode': '''class testClassNoBrief(object):
+                """Here is the body. It's not a brief as
+                it has multiple lines."""''',
+            'expectedOutput': [
+                "##Here is the body. It's not a brief as",
+                '#                it has multiple lines.\n# @namespace dummy.testClassNoBrief',
+                'class testClassNoBrief(object):'
             ]
         }
     ]
@@ -136,6 +180,40 @@ class TestDoxypypy(unittest.TestCase):
             ]
         }
     ]
+    __sampleAttrs = [
+        {
+            'name': 'oneattr',
+            'visitor': 'visit_ClassDef',
+            'inputCode': '''class testClassAttr(object):
+                """Here is the brief.
+                Attributes:
+                attr -- a test attribute."""''',
+            'expectedOutput': [
+                '## @brief Here is the brief.',
+                '#\n# @namespace dummy.testClassAttr',
+                'class testClassAttr(object):',
+                '\n## @property\t\tattr\n# a test attribute.'
+            ]
+        },
+        {
+            'name': 'multipleattrs',
+            'visitor': 'visit_ClassDef',
+            'inputCode': '''class testClassArgs(object):
+                """Here is the brief.
+                Attributes:
+                attr1: a test attribute.
+                attr2: another test attribute.
+                attr3: yet another test attribute."""''',
+            'expectedOutput': [
+                '## @brief Here is the brief.',
+                '#\n# @namespace dummy.testClassArgs',
+                'class testClassArgs(object):',
+                '\n## @property\t\tattr1\n# a test attribute.',
+                '\n## @property\t\tattr2\n# another test attribute.',
+                '\n## @property\t\tattr3\n# yet another test attribute.'
+            ]
+        }
+    ]
     __sampleReturns = [
         {
             'name': 'returns',
@@ -149,6 +227,20 @@ class TestDoxypypy(unittest.TestCase):
                 '# @return',
                 '#                Good stuff.\n# @namespace dummy.testFunctionReturns',
                 'def testFunctionReturns():'
+            ]
+        },
+        {
+            'name': 'yields',
+            'visitor': 'visit_FunctionDef',
+            'inputCode': '''def testFunctionYields():
+                """Here is the brief.
+                Yields:
+                Good stuff."""''',
+            'expectedOutput': [
+                '## @brief Here is the brief.',
+                '# @return',
+                '#                Good stuff.\n# @namespace dummy.testFunctionYields',
+                'def testFunctionYields():'
             ]
         }
     ]
@@ -183,6 +275,38 @@ class TestDoxypypy(unittest.TestCase):
                 '# @exception\t\tMyException2\tcrash.',
                 '# @exception\t\tMyException3\tsplatter.\n# @namespace dummy.testFunctionRaisesMultiple',
                 'def testFunctionRaisesMultiple():'
+            ]
+        },
+        {
+            'name': 'oneraisesclass',
+            'visitor': 'visit_ClassDef',
+            'inputCode': '''class testClassRaisesOne(object):
+                """Here is the brief.
+                Raises:
+                MyException: bang bang a boom."""''',
+            'expectedOutput': [
+                '## @brief Here is the brief.',
+                '#',
+                '# @exception\t\tMyException\tbang bang a boom.\n# @namespace dummy.testClassRaisesOne',
+                'class testClassRaisesOne(object):'
+            ]
+        },
+        {
+            'name': 'multipleraisesclass',
+            'visitor': 'visit_ClassDef',
+            'inputCode': '''class testClassRaisesMultiple(object):
+                """Here is the brief.
+                Raises:
+                MyException1 -- bang bang a boom.
+                MyException2 -- crash.
+                MyException3 -- splatter."""''',
+            'expectedOutput': [
+                '## @brief Here is the brief.',
+                '#',
+                '# @exception\t\tMyException1\tbang bang a boom.',
+                '# @exception\t\tMyException2\tcrash.',
+                '# @exception\t\tMyException3\tsplatter.\n# @namespace dummy.testClassRaisesMultiple',
+                'class testClassRaisesMultiple(object):'
             ]
         }
     ]
@@ -321,15 +445,21 @@ class TestDoxypypy(unittest.TestCase):
         """
         self.snippetComparison(TestDoxypypy.__sampleArgs)
 
+    def test_sampleAttrs(self):
+        """
+        Tests the proper handling of attributes in class docstrings.
+        """
+        self.snippetComparison(TestDoxypypy.__sampleAttrs)
+
     def test_sampleReturns(self):
         """
-        Tests the proper handling of returns in function docstrings.
+        Tests the proper handling of returns and yields in function docstrings.
         """
         self.snippetComparison(TestDoxypypy.__sampleReturns)
 
     def test_sampleRaises(self):
         """
-        Tests the proper handling of raises in function docstrings.
+        Tests the proper handling of raises in function and class docstrings.
         """
         self.snippetComparison(TestDoxypypy.__sampleRaises)
 

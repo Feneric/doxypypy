@@ -475,6 +475,12 @@ class AstWalker(NodeVisitor):
                                         firstVarLineNum: lastVarLineNum]]
                         defLines.extend(varLines)
                         self.docLines[firstVarLineNum: lastVarLineNum] = []
+                        # After the property shuffling we will need to relocate
+                        # any existing namespace information.
+                        namespaceLoc = defLines[-1].find('\n# @namespace')
+                        if namespaceLoc >= 0:
+                            self.docLines[-1] += defLines[-1][namespaceLoc:]
+                            defLines[-1] = defLines[-1][:namespaceLoc]
 
         # For classes and functions, apply our changes and reverse the
         # order of the declaration and docstring, and for modules just
