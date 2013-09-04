@@ -52,8 +52,7 @@ class TestDoxypypy(unittest.TestCase):
                 '## @brief Here is the brief.\n# @namespace dummy.testFunctionOneLine',
                 'def testFunctionOneLine():'
             ]
-        },
-        {
+        }, {
             'name': 'onelineclass',
             'visitor': 'visit_ClassDef',
             'inputCode': '''class testClassOneLine(object):
@@ -62,8 +61,7 @@ class TestDoxypypy(unittest.TestCase):
                 '## @brief Here is the brief.\n# @namespace dummy.testClassOneLine',
                 'class testClassOneLine(object):'
             ]
-        },
-        {
+        }, {
             'name': 'basicfunction',
             'visitor': 'visit_FunctionDef',
             'inputCode': '''def testFunctionBrief():
@@ -78,8 +76,7 @@ class TestDoxypypy(unittest.TestCase):
                 '#                it has multiple lines.\n# @namespace dummy.testFunctionBrief',
                 'def testFunctionBrief():'
             ]
-        },
-        {
+        }, {
             'name': 'basicclass',
             'visitor': 'visit_ClassDef',
             'inputCode': '''class testClassBrief(object):
@@ -94,8 +91,7 @@ class TestDoxypypy(unittest.TestCase):
                 '#                it has multiple lines.\n# @namespace dummy.testClassBrief',
                 'class testClassBrief(object):'
             ]
-        },
-        {
+        }, {
             'name': 'basicfunctionnobrief',
             'visitor': 'visit_FunctionDef',
             'inputCode': '''def testFunctionNoBrief():
@@ -106,8 +102,7 @@ class TestDoxypypy(unittest.TestCase):
                 '#                it has multiple lines.\n# @namespace dummy.testFunctionNoBrief',
                 'def testFunctionNoBrief():'
             ]
-        },
-        {
+        }, {
             'name': 'basicclassnobrief',
             'visitor': 'visit_ClassDef',
             'inputCode': '''class testClassNoBrief(object):
@@ -134,8 +129,7 @@ class TestDoxypypy(unittest.TestCase):
                 '# @param\t\targ\ta test argument.\n# @namespace dummy.testFunctionArg',
                 'def testFunctionArg(arg):'
             ]
-        },
-        {
+        }, {
             'name': 'multipleargs',
             'visitor': 'visit_FunctionDef',
             'inputCode': '''def testFunctionArgs(arg1, arg2, arg3):
@@ -152,8 +146,7 @@ class TestDoxypypy(unittest.TestCase):
                 '# @param\t\targ3\tyet another test argument.\n# @namespace dummy.testFunctionArgs',
                 'def testFunctionArgs(arg1, arg2, arg3):'
             ]
-        },
-        {
+        }, {
             'name': 'multiplelineargs',
             'visitor': 'visit_FunctionDef',
             'inputCode': '''def testFunctionArgsMulti(
@@ -194,8 +187,7 @@ class TestDoxypypy(unittest.TestCase):
                 'class testClassAttr(object):',
                 '\n## @property\t\tattr\n# a test attribute.'
             ]
-        },
-        {
+        }, {
             'name': 'multipleattrs',
             'visitor': 'visit_ClassDef',
             'inputCode': '''class testClassArgs(object):
@@ -228,8 +220,7 @@ class TestDoxypypy(unittest.TestCase):
                 '#                Good stuff.\n# @namespace dummy.testFunctionReturns',
                 'def testFunctionReturns():'
             ]
-        },
-        {
+        }, {
             'name': 'yields',
             'visitor': 'visit_FunctionDef',
             'inputCode': '''def testFunctionYields():
@@ -258,8 +249,7 @@ class TestDoxypypy(unittest.TestCase):
                 '# @exception\t\tMyException\tbang bang a boom.\n# @namespace dummy.testFunctionRaisesOne',
                 'def testFunctionRaisesOne():'
             ]
-        },
-        {
+        }, {
             'name': 'multipleraises',
             'visitor': 'visit_FunctionDef',
             'inputCode': '''def testFunctionRaisesMultiple():
@@ -276,8 +266,7 @@ class TestDoxypypy(unittest.TestCase):
                 '# @exception\t\tMyException3\tsplatter.\n# @namespace dummy.testFunctionRaisesMultiple',
                 'def testFunctionRaisesMultiple():'
             ]
-        },
-        {
+        }, {
             'name': 'oneraisesclass',
             'visitor': 'visit_ClassDef',
             'inputCode': '''class testClassRaisesOne(object):
@@ -290,8 +279,7 @@ class TestDoxypypy(unittest.TestCase):
                 '# @exception\t\tMyException\tbang bang a boom.\n# @namespace dummy.testClassRaisesOne',
                 'class testClassRaisesOne(object):'
             ]
-        },
-        {
+        }, {
             'name': 'multipleraisesclass',
             'visitor': 'visit_ClassDef',
             'inputCode': '''class testClassRaisesMultiple(object):
@@ -353,20 +341,36 @@ class TestDoxypypy(unittest.TestCase):
         """
         Tests the checkIfCode method on the code side.
         """
-        codeChecker = self.dummyWalker._checkIfCode(False)
-        testLines = [
-            'This is prose, not code.',
-            '...',
-            '>>> print("Now we have code.")'
+        testPairs = [
+            ([
+                'This is prose, not code.',
+                '...',
+                '>>> print("Now we have code.")'
+            ], [
+                'This is prose, not code.',
+                '...{0}# @code{0}'.format(linesep),
+                '>>> print("Now we have code.")'
+            ]), ([
+                'This is prose, not code.',
+                'Traceback: frobnotz failure',
+                '>>> print("Now we have code.")'
+            ], [
+                'This is prose, not code.',
+                'Traceback: frobnotz failure{0}# @code{0}'.format(linesep),
+                '>>> print("Now we have code.")'
+            ]), ([
+                'This is prose, not code.',
+                '>>> print("Now we have code.")'
+            ], [
+                'This is prose, not code.{0}# @code{0}'.format(linesep),
+                '>>> print("Now we have code.")'
+            ])
         ]
-        outputLines = [
-            'This is prose, not code.',
-            '...{0}# @code{0}'.format(linesep),
-            '>>> print("Now we have code.")'
-        ]
-        for lineNum, line in enumerate(testLines):
-            codeChecker.send((line, testLines, lineNum))
-        self.assertEqual(testLines, outputLines)
+        for testLines, outputLines in testPairs:
+            codeChecker = self.dummyWalker._checkIfCode(False)
+            for lineNum, line in enumerate(testLines):
+                codeChecker.send((line, testLines, lineNum))
+            self.assertEqual(testLines, outputLines)
 
     def test_checkIfProse(self):
         """
