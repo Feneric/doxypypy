@@ -129,7 +129,7 @@ class AstWalker(NodeVisitor):
                     # These are ambiguous.
                     line, lines, lineNum = (yield)
                     testLine = line.strip()
-                    testLineNum = 1
+                    #testLineNum = 1
                 elif testLine.startswith('>>> '):
                     # This is definitely code.
                     lineOfCode = True
@@ -155,7 +155,7 @@ class AstWalker(NodeVisitor):
                         # Other errors are ambiguous.
                         line, lines, lineNum = (yield)
                         testLine = line.strip()
-                        testLineNum = 1
+                        #testLineNum = 1
                 currentLineNum = lineNum - testLineNum
             if not inCodeBlock and lineOfCode:
                 inCodeBlock = True
@@ -166,8 +166,11 @@ class AstWalker(NodeVisitor):
             elif inCodeBlock and lineOfCode is False:
                 # None is ambiguous, so strict checking
                 # against False is necessary.
-                lines[currentLineNum], inCodeBlock = \
-                    self._endCodeIfNeeded(lines[currentLineNum], inCodeBlock)
+                inCodeBlock = False
+                lines[currentLineNum] = '{0}{1}# @endcode{1}'.format(
+                    lines[currentLineNum],
+                    linesep
+                )
 
     @coroutine
     def __alterDocstring(self, tail='', writer=None):

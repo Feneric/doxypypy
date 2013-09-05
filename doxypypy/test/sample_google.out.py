@@ -31,8 +31,8 @@
 #        {'Serak': ('Rigel VII', 'Preparer'),
 #         'Zim': ('Irk', 'Invader'),
 #         'Lrrr': ('Omicron Persei 8', 'Emperor')}
-# @endcode
 #
+# @endcode
 #        If a key from the keys argument is missing from the dictionary,
 #        then that row was not found in the table.
 #

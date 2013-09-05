@@ -342,29 +342,49 @@ class TestDoxypypy(unittest.TestCase):
         Tests the checkIfCode method on the code side.
         """
         testPairs = [
-            ([
-                'This is prose, not code.',
-                '...',
-                '>>> print("Now we have code.")'
-            ], [
-                'This is prose, not code.',
-                '...{0}# @code{0}'.format(linesep),
-                '>>> print("Now we have code.")'
-            ]), ([
-                'This is prose, not code.',
-                'Traceback: frobnotz failure',
-                '>>> print("Now we have code.")'
-            ], [
-                'This is prose, not code.',
-                'Traceback: frobnotz failure{0}# @code{0}'.format(linesep),
-                '>>> print("Now we have code.")'
-            ]), ([
-                'This is prose, not code.',
-                '>>> print("Now we have code.")'
-            ], [
-                'This is prose, not code.{0}# @code{0}'.format(linesep),
-                '>>> print("Now we have code.")'
-            ])
+            (
+                [
+                    'This is prose, not code.',
+                    '...',
+                    '>>> print("Now we have code.")'
+                ], [
+                    'This is prose, not code.',
+                    '...{0}# @code{0}'.format(linesep),
+                    '>>> print("Now we have code.")'
+                ]
+            ), (
+                [
+                    'This is prose, not code.',
+                    'Traceback: frobnotz failure',
+                    '>>> print("Now we have code.")'
+                ], [
+                    'This is prose, not code.',
+                    'Traceback: frobnotz failure{0}# @code{0}'.format(linesep),
+                    '>>> print("Now we have code.")'
+                ]
+            ), (
+                [
+                    'This is prose, not code.',
+                    '>>> print("Now we have code.")'
+                ], [
+                    'This is prose, not code.{0}# @code{0}'.format(linesep),
+                    '>>> print("Now we have code.")'
+                ]
+            ), (
+                [
+                    'This is prose, not code.',
+                    'This is still prose, not code.',
+                    'Another line of prose to really be sure.',
+                    'Ditto again, still prose.',
+                    '>>> print("Now we have code.")'
+                ], [
+                    'This is prose, not code.',
+                    'This is still prose, not code.',
+                    'Another line of prose to really be sure.',
+                    'Ditto again, still prose.{0}# @code{0}'.format(linesep),
+                    '>>> print("Now we have code.")'
+                ]
+            )
         ]
         for testLines, outputLines in testPairs:
             codeChecker = self.dummyWalker._checkIfCode(False)
@@ -376,16 +396,66 @@ class TestDoxypypy(unittest.TestCase):
         """
         Tests the checkIfCode method on the prose side.
         """
-        proseChecker = self.dummyWalker._checkIfCode(True)
-        testLines = [
-            'This is prose, not code.'
+        testPairs = [
+            (
+                [
+                    '...',
+                    'This is prose, not code.'
+                ], [
+                    '...{0}# @endcode{0}'.format(linesep),
+                    'This is prose, not code.'
+                ]
+            ), (
+                [
+                    'Traceback: frobnotz error',
+                    'This is prose, not code.'
+                ], [
+                    'Traceback: frobnotz error{0}# @endcode{0}'.format(linesep),
+                    'This is prose, not code.'
+                ]
+            ), (
+                [
+                    '>>> print("Code.")',
+                    'This is prose, not code.'
+                ], [
+                    '>>> print("Code."){0}# @endcode{0}'.format(linesep),
+                    'This is prose, not code.'
+                ]
+            ), (
+                [
+                    '>>> myVar = 23',
+                    '>>> print(myVar)',
+                    '',
+                    'This is prose, not code.'
+                ], [
+                    '>>> myVar = 23',
+                    '>>> print(myVar)',
+                    '{0}# @endcode{0}'.format(linesep),
+                    'This is prose, not code.'
+                ]
+            ), (
+                [
+                    '>>> myVar = 23',
+                    '>>> print(myVar)',
+                    '>>> myVar += 5',
+                    '>>> print(myVar)',
+                    '',
+                    'This is prose, not code.'
+                ], [
+                    '>>> myVar = 23',
+                    '>>> print(myVar)',
+                    '>>> myVar += 5',
+                    '>>> print(myVar)',
+                    '{0}# @endcode{0}'.format(linesep),
+                    'This is prose, not code.'
+                ]
+            )
         ]
-        outputLines = [
-            '# @endcode\nThis is prose, not code.'
-        ]
-        for lineNum, line in enumerate(testLines):
-            proseChecker.send((line, testLines, lineNum))
-        self.assertEqual(testLines, outputLines)
+        for testLines, outputLines in testPairs:
+            proseChecker = self.dummyWalker._checkIfCode(True)
+            for lineNum, line in enumerate(testLines):
+                proseChecker.send((line, testLines, lineNum))
+            self.assertEqual(testLines, outputLines)
 
     def test_checkMemberName(self):
         """
