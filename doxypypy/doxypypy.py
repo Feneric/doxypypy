@@ -188,6 +188,7 @@ class AstWalker(NodeVisitor):
         inSection = False
         prefix = ''
         firstLineNum = -1
+        sectionHeadingIndent = 0
         codeChecker = self._checkIfCode(False)
         proseChecker = self._checkIfCode(True)
         while True:
@@ -420,9 +421,14 @@ class AstWalker(NodeVisitor):
 
         # Add a Doxygen @brief tag to any single-line description.
         if self.options.autobrief:
+            safetyCounter = 0
             while len(self.docLines) > 0 and self.docLines[0].lstrip('#').strip() == '':
                 del self.docLines[0]
                 self.docLines.append('')
+                safetyCounter += 1
+                if safetyCounter >= len(self.docLines):
+                    # Escape the effectively empty docstring.
+                    break
             if len(self.docLines) == 1 or (len(self.docLines) >= 2 and (
                 self.docLines[1].strip(whitespace + '#') == '' or
                     self.docLines[1].strip(whitespace + '#').startswith('@'))):
@@ -672,6 +678,20 @@ class AstWalker(NodeVisitor):
             tail = '@namespace {0}'.format(modifiedContextTag)
         else:
             tail = self._processMembers(node, '')
+        lineNum = node.lineno - 1
+        decoratorComment = False
+        while True:
+            topLine = self.lines[lineNum].lstrip()
+            if topLine.startswith('def'):
+                break
+            elif topLine.startswith('@'):
+                # we have a decorator
+                decoratorComment = True
+                if self.options.debug:
+                    stderr.write("# Decorator{0}".format(linesep))
+            if decoratorComment:
+                self.lines[lineNum] = '# {0}'.format(self.lines[lineNum])
+            lineNum += 1
         if get_docstring(node):
             self._processDocstring(node, tail,
                                    containingNodes=containingNodes)
