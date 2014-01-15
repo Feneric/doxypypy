@@ -71,7 +71,9 @@ class AstWalker(NodeVisitor):
         ' @copyright ': regexpCompile(r"^(\s*Copyright:\s*)(.*)$", IGNORECASE),
         ' @date ': regexpCompile(r"^(\s*Date:\s*)(.*)$", IGNORECASE),
         ' @file ': regexpCompile(r"^(\s*File:\s*)(.*)$", IGNORECASE),
-        ' @version: ': regexpCompile(r"^(\s*Version:\s*)(.*)$", IGNORECASE)
+        ' @version: ': regexpCompile(r"^(\s*Version:\s*)(.*)$", IGNORECASE),
+        ' @note ': regexpCompile(r"^(\s*Note:\s*)(.*)$", IGNORECASE),
+        ' @warning ': regexpCompile(r"^(\s*Warning:\s*)(.*)$", IGNORECASE)
     }
     __argsStartRE = regexpCompile(r"^(\s*(?:(?:Keyword\s+)?"
                                   r"(?:A|Kwa)rg(?:ument)?|Attribute)s?"
@@ -678,20 +680,6 @@ class AstWalker(NodeVisitor):
             tail = '@namespace {0}'.format(modifiedContextTag)
         else:
             tail = self._processMembers(node, '')
-        lineNum = node.lineno - 1
-        decoratorComment = False
-        while True:
-            topLine = self.lines[lineNum].lstrip()
-            if topLine.startswith('def'):
-                break
-            elif topLine.startswith('@'):
-                # we have a decorator
-                decoratorComment = True
-                if self.options.debug:
-                    stderr.write("# Decorator{0}".format(linesep))
-            if decoratorComment:
-                self.lines[lineNum] = '# {0}'.format(self.lines[lineNum])
-            lineNum += 1
         if get_docstring(node):
             self._processDocstring(node, tail,
                                    containingNodes=containingNodes)
