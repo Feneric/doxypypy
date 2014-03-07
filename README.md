@@ -157,7 +157,7 @@ For Unix-like operating systems, `py_filter` should like something like this:
 In Windows, the batch file should be named `py_filter.bat`, and need only
 contain the one line:
 
-    python -m doxypypy.doxypypy -a -c $1
+    python -m doxypypy.doxypypy -a -c %1
 
 Running Doxygen as usual should now run all Python code through doxypypy.  Be
 sure to carefully browse the Doxygen output the first time to make sure that
