@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
-from os.path import dirname
+from os.path import dirname, join
 from os import chdir
 
 if dirname(__file__):
     chdir(dirname(__file__))
 
-
 setup(
     name='doxypypy',
     version='0.8.7',
     description='A Doxygen filter for Python',
-    long_description=open('README.md').read(),
+    long_description=open(join(dirname(__file__), 'README.md')).read(),
     keywords='Doxygen filter Python documentation',
     author='Eric W. Brown',
     url='https://github.com/Feneric/doxypypy',
