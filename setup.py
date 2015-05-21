@@ -4,14 +4,16 @@ from setuptools import setup, find_packages
 from os.path import dirname, join
 from os import chdir
 
-if dirname(__file__):
-    chdir(dirname(__file__))
+def read(*paths):
+    """Return contents of file found at path constructed from paths."""
+    with open(join(*paths)) as infile:
+        return infile.read()
 
 setup(
     name='doxypypy',
     version='0.8.8',
     description='A Doxygen filter for Python',
-    long_description=open(join(dirname(__file__), 'README.md')).read(),
+    long_description=read('README.md'),
     keywords='Doxygen filter Python documentation',
     author='Eric W. Brown',
     url='https://github.com/Feneric/doxypypy',
