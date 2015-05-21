@@ -9,7 +9,7 @@ if dirname(__file__):
 
 setup(
     name='doxypypy',
-    version='0.8.7',
+    version='0.8.8',
     description='A Doxygen filter for Python',
     long_description=open(join(dirname(__file__), 'README.md')).read(),
     keywords='Doxygen filter Python documentation',
