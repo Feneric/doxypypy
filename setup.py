@@ -7,7 +7,6 @@ from os import chdir
 if dirname(__file__):
     chdir(dirname(__file__))
 
-
 setup(
     name='doxypypy',
     version='0.8.8.5',
