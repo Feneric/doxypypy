@@ -70,7 +70,7 @@ Example
 This filter will correctly process code like the following working (albeit
 contrived) example:
 
-::
+.. code:: python
     def myfunction(arg1, arg2, kwarg='whatever.'):
         """
         Does nothing more than demonstrate syntax.
@@ -114,7 +114,6 @@ contrived) example:
         if arg2 > 23:
             raise ValueError
         return '{0} - {1}, {2}'.format(arg1 + arg2, arg1 / arg2, kwarg)
-.. code:: python
 
 There are a few points to note:
 
@@ -137,15 +136,13 @@ Previewing doxypypy Output
 After successful installation, doxypypy can be run from the command line to
 preview the filtered results with:
 
-::
-    python -m doxypypy.doxypypy -a -c file.py
 .. code:: shell
+    python -m doxypypy.doxypypy -a -c file.py
 
 Typically you'll want to redirect output to a file for viewing in a text editor:
 
-::
-    python -m doxypypy.doxypypy -a -c file.py > file.py.out
 .. code:: shell
+    python -m doxypypy.doxypypy -a -c file.py > file.py.out
 
 Invoking doxypypy from Doxygen
 ------------------------------
@@ -153,9 +150,8 @@ Invoking doxypypy from Doxygen
 To make Doxygen run your Python code through doxypypy, set the FILTER\_PATTERNS
 tag in your Doxyfile as follows:
 
-::
-    FILTER_PATTERNS        = *.py=py_filter
 .. code:: shell
+    FILTER_PATTERNS        = *.py=py_filter
 
 `py_filter` must be available in your path as a shell script (or Windows batch
 file).  If you wish to run `py_filter` in a particular directory you can include
@@ -163,17 +159,15 @@ the full or relative path.
 
 For Unix-like operating systems, `py_filter` should like something like this:
 
-::
+.. code:: shell
     #!/bin/bash
     python -m doxypypy.doxypypy -a -c $1
-.. code:: shell
 
 In Windows, the batch file should be named `py_filter.bat`, and need only
 contain the one line:
 
-::
-    python -m doxypypy.doxypypy -a -c %1
 .. code:: shell
+    python -m doxypypy.doxypypy -a -c %1
 
 Running Doxygen as usual should now run all Python code through doxypypy.  Be
 sure to carefully browse the Doxygen output the first time to make sure that
