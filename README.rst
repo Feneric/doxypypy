@@ -114,7 +114,7 @@ contrived) example:
         if arg2 > 23:
             raise ValueError
         return '{0} - {1}, {2}'.format(arg1 + arg2, arg1 / arg2, kwarg)
-..code:: python
+.. code:: python
 
 There are a few points to note:
 
@@ -139,13 +139,13 @@ preview the filtered results with:
 
 ::
     python -m doxypypy.doxypypy -a -c file.py
-..code:: shell
+.. code:: shell
 
 Typically you'll want to redirect output to a file for viewing in a text editor:
 
 ::
     python -m doxypypy.doxypypy -a -c file.py > file.py.out
-..code:: shell
+.. code:: shell
 
 Invoking doxypypy from Doxygen
 ------------------------------
@@ -155,7 +155,7 @@ tag in your Doxyfile as follows:
 
 ::
     FILTER_PATTERNS        = *.py=py_filter
-..code:: shell
+.. code:: shell
 
 `py_filter` must be available in your path as a shell script (or Windows batch
 file).  If you wish to run `py_filter` in a particular directory you can include
@@ -166,14 +166,14 @@ For Unix-like operating systems, `py_filter` should like something like this:
 ::
     #!/bin/bash
     python -m doxypypy.doxypypy -a -c $1
-..code:: shell
+.. code:: shell
 
 In Windows, the batch file should be named `py_filter.bat`, and need only
 contain the one line:
 
 ::
     python -m doxypypy.doxypypy -a -c %1
-..code:: shell
+.. code:: shell
 
 Running Doxygen as usual should now run all Python code through doxypypy.  Be
 sure to carefully browse the Doxygen output the first time to make sure that
