@@ -70,7 +70,8 @@ Example
 This filter will correctly process code like the following working (albeit
 contrived) example:
 
-.. code:: python
+.. code-block:: python
+
     def myfunction(arg1, arg2, kwarg='whatever.'):
         """
         Does nothing more than demonstrate syntax.
@@ -136,12 +137,14 @@ Previewing doxypypy Output
 After successful installation, doxypypy can be run from the command line to
 preview the filtered results with:
 
-.. code:: shell
+.. code-block:: shell
+
     python -m doxypypy.doxypypy -a -c file.py
 
 Typically you'll want to redirect output to a file for viewing in a text editor:
 
-.. code:: shell
+.. code-block:: shell
+
     python -m doxypypy.doxypypy -a -c file.py > file.py.out
 
 Invoking doxypypy from Doxygen
@@ -150,7 +153,8 @@ Invoking doxypypy from Doxygen
 To make Doxygen run your Python code through doxypypy, set the FILTER\_PATTERNS
 tag in your Doxyfile as follows:
 
-.. code:: shell
+.. code-block:: shell
+
     FILTER_PATTERNS        = *.py=py_filter
 
 `py_filter` must be available in your path as a shell script (or Windows batch
@@ -159,14 +163,16 @@ the full or relative path.
 
 For Unix-like operating systems, `py_filter` should like something like this:
 
-.. code:: shell
+.. code-block:: shell
+
     #!/bin/bash
     python -m doxypypy.doxypypy -a -c $1
 
 In Windows, the batch file should be named `py_filter.bat`, and need only
 contain the one line:
 
-.. code:: shell
+.. code-block:: shell
+
     python -m doxypypy.doxypypy -a -c %1
 
 Running Doxygen as usual should now run all Python code through doxypypy.  Be
