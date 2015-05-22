@@ -1,30 +1,31 @@
 doxypypy
 ========
 
-A more Pythonic version of doxypy, a Doxygen filter for Python.
+*A more Pythonic version of doxypy, a Doxygen filter for Python.*
 
-## Intent
+Intent
+------
 
-For now [Doxygen](http://www.stack.nl/~dimitri/doxygen/) has limited support for
-Python.  It recognizes Python comments, but otherwise treats the language as being
-more or less like Java.  It doesn't understand basic Python syntax constructs like
-docstrings, keyword arguments, generators, nested functions, decorators, or
-lambda expressions.  It likewise doesn't understand conventional constructs like
-doctests or ZOPE-style interfaces.  It does however support inline filters that
-can be used to make input source code a little more like what it's expecting.
+For now Doxygen_ has limited support for Python.  It recognizes Python comments,
+but otherwise treats the language as being more or less like Java.  It doesn't
+understand basic Python syntax constructs like docstrings, keyword arguments,
+generators, nested functions, decorators, or lambda expressions.  It likewise
+doesn't understand conventional constructs like doctests or ZOPE-style
+interfaces.  It does however support inline filters that can be used to make
+input source code a little more like what it's expecting.
 
-The excellent [doxypy](https://github.com/Feneric/doxypy) makes it possible
-to embed Doxygen commands in Python docstrings, and have those docstrings
-converted to Doxygen-recognized comments on the fly per Doxygen's regular
-input filtering process.  It however does not address any of the other
-previously mentioned areas of difficulty.
+The excellent doxypy_ makes it possible to embed Doxygen commands in Python
+docstrings, and have those docstrings converted to Doxygen-recognized comments
+on the fly per Doxygen's regular input filtering process.  It however does not
+address any of the other previously mentioned areas of difficulty.
 
 This project started off as a fork of doxypy but quickly became quite distinct.
 It shares little (if any) of the same code at this point (but maintains the
 original license just in case).  It is meant to support all the same command
 line options as doxypy, but handle additional Python syntax beyond docstrings.
 
-## Additional Syntax Supported
+Additional Syntax Supported
+---------------------------
 
 Python can have functions and classes within both functions and classes.
 Doxygen best understands this concept via its notion of namespaces.  This filter
@@ -51,11 +52,11 @@ interfaces and treats them accordingly, supplying Doxygen tags as appropriate.
 Fundamentally Python docstrings are meant for humans and not machines, and ought
 not to have special mark-up beyond conventional structured text.  This filter
 heuristically examines Python docstrings, and ones like the sample for complex
-in [PEP 257](http://www.python.org/dev/peps/pep-0257/) or that generally follow
-the stricter [Google Python Style Guide](http://google-styleguide.googlecode.com/svn/trunk/pyguide.html?showone=Comments#Comments)
+in `PEP 257`_ or that generally follow the stricter `Google Python Style Guide`_
 will get appropriate Doxygen tags automatically added.
 
-## How It Works
+How It Works
+------------
 
 This project takes a radically different approach than doxypy.  Rather than use
 regular expressions tied to a state machine to figure out syntax, Python's own
@@ -63,11 +64,13 @@ Abstract Syntax Tree module is used to extract items of interest.  If the
 `autobrief` option is enabled, docstrings are parsed via a set of regular
 expressions and a producer / consumer pair of coroutines.
 
-## Example
+Example
+-------
 
 This filter will correctly process code like the following working (albeit
 contrived) example:
 
+::
     def myfunction(arg1, arg2, kwarg='whatever.'):
         """
         Does nothing more than demonstrate syntax.
@@ -111,6 +114,7 @@ contrived) example:
         if arg2 > 23:
             raise ValueError
         return '{0} - {1}, {2}'.format(arg1 + arg2, arg1 / arg2, kwarg)
+..code:: python
 
 There are a few points to note:
 
@@ -127,23 +131,31 @@ the perfect place for doctests.
 
 Additional more comprehensive examples can be found in the test area.
 
-## Previewing doxypypy Output
+Previewing doxypypy Output
+--------------------------
 
 After successful installation, doxypypy can be run from the command line to
 preview the filtered results with:
 
+::
     python -m doxypypy.doxypypy -a -c file.py
+..code:: shell
 
 Typically you'll want to redirect output to a file for viewing in a text editor:
 
+::
     python -m doxypypy.doxypypy -a -c file.py > file.py.out
+..code:: shell
 
-## Invoking doxypypy from Doxygen
+Invoking doxypypy from Doxygen
+------------------------------
 
 To make Doxygen run your Python code through doxypypy, set the FILTER\_PATTERNS
 tag in your Doxyfile as follows:
 
+::
     FILTER_PATTERNS        = *.py=py_filter
+..code:: shell
 
 `py_filter` must be available in your path as a shell script (or Windows batch
 file).  If you wish to run `py_filter` in a particular directory you can include
@@ -151,14 +163,24 @@ the full or relative path.
 
 For Unix-like operating systems, `py_filter` should like something like this:
 
+::
     #!/bin/bash
     python -m doxypypy.doxypypy -a -c $1
+..code:: shell
 
 In Windows, the batch file should be named `py_filter.bat`, and need only
 contain the one line:
 
+::
     python -m doxypypy.doxypypy -a -c %1
+..code:: shell
 
 Running Doxygen as usual should now run all Python code through doxypypy.  Be
 sure to carefully browse the Doxygen output the first time to make sure that
 Doxygen properly found and executed doxypypy.
+
+.. _Doxygen: http://www.stack.nl/~dimitri/doxygen/
+.. _doxypy: https://github.com/Feneric/doxypy
+.. _PEP 257: http://www.python.org/dev/peps/pep-0257/
+.. _Google Python Style Guide: http://google-styleguide.googlecode.com/svn/trunk/pyguide.html?showone=Comments#Comments
+
