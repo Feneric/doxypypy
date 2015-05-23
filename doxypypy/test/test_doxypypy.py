@@ -20,7 +20,7 @@ if __name__ == '__main__':
     from os.path import normpath, dirname
     path.append('doxypypy')
     chdir(normpath(join(getcwd(), dirname(__file__), '..', '..')))
-    from doxypypy import AstWalker
+    from doxypypy.doxypypy import AstWalker
 else:
     from ..doxypypy import AstWalker
 
