@@ -790,6 +790,11 @@ def main():
             action="store", type="int", dest="tablength", default=4,
             help="specify a tab length in spaces; only needed if tabs are used"
         )
+        parser.add_option(
+            "-s", "--stripinit",
+            action="store_true", dest="stripinit",
+            help="strip __init__ from namespace"
+        )
         group = OptionGroup(parser, "Debug Options")
         group.add_option(
             "-d", "--debug",
@@ -814,6 +819,8 @@ def main():
             namespaceStart = fullPathNamespace.find(options.topLevelNamespace)
             if namespaceStart >= 0:
                 realNamespace = fullPathNamespace[namespaceStart:]
+        if options.stripinit:
+            realNamespace = realNamespace.replace('.__init__', '')
         options.fullPathNamespace = realNamespace
 
         return options, filename[0]
