@@ -585,14 +585,20 @@ class AstWalker(NodeVisitor):
         Process the module-level docstring and create appropriate Doxygen tags
         if autobrief option is set.
         """
+        containingNodes=kwargs.get('containingNodes', [])
         if self.options.debug:
             stderr.write("# Module {0}{1}".format(self.options.fullPathNamespace,
                                                   linesep))
         if get_docstring(node):
-            self._processDocstring(node)
+            if self.options.topLevelNamespace:
+                fullPathNamespace = self._getFullPathName(containingNodes)
+                contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
+                tail = '@namespace {0}'.format(contextTag)
+            else:
+                tail = ''
+            self._processDocstring(node, tail)
         # Visit any contained nodes (in this case pretty much everything).
-        self.generic_visit(node, containingNodes=kwargs.get('containingNodes',
-                                                            []))
+        self.generic_visit(node, containingNodes=containingNodes)
 
     def visit_Assign(self, node, **kwargs):
         """
@@ -790,6 +796,11 @@ def main():
             action="store", type="int", dest="tablength", default=4,
             help="specify a tab length in spaces; only needed if tabs are used"
         )
+        parser.add_option(
+            "-s", "--stripinit",
+            action="store_true", dest="stripinit",
+            help="strip __init__ from namespace"
+        )
         group = OptionGroup(parser, "Debug Options")
         group.add_option(
             "-d", "--debug",
@@ -814,6 +825,8 @@ def main():
             namespaceStart = fullPathNamespace.find(options.topLevelNamespace)
             if namespaceStart >= 0:
                 realNamespace = fullPathNamespace[namespaceStart:]
+        if options.stripinit:
+            realNamespace = realNamespace.replace('.__init__', '')
         options.fullPathNamespace = realNamespace
 
         return options, filename[0]
