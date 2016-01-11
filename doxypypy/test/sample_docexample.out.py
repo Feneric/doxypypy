@@ -5,6 +5,7 @@
 #This is the example used in the doxypypy documentation.
 #It demonstrates basic docstring usage (including doctests).
 #
+# @namespace sample_docexample
 
 
 

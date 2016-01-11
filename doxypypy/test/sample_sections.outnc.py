@@ -6,6 +6,7 @@
 #
 #[1]: https://github.com/Feneric/doxypypy/issues/7
 #
+# @namespace sample_sections
 
 
 

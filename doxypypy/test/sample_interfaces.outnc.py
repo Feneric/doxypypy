@@ -4,6 +4,7 @@
 #Here we're just trying to make some typical interface definitions
 #to better test the doxypypy filter.
 #
+# @namespace sample_interfaces
 
 
 from zope.interface import Interface, Attribute

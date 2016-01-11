@@ -14,6 +14,7 @@
 #
 #[1]: https://github.com/Feneric/doxypypy/issues/8
 #
+# @namespace sample_rawdocstring
 
 
 

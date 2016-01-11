@@ -6,6 +6,7 @@
 #
 #http://google-styleguide.googlecode.com/svn/trunk/pyguide.html?showone=Comments#Comments
 #
+# @namespace sample_google
 
 
 
