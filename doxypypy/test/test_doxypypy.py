@@ -11,6 +11,7 @@ from collections import namedtuple
 from os import linesep, sep
 from os.path import join, basename, splitext
 from ast import parse
+from codecs import open as codecsOpen
 # The following little bit of hackery makes for convenient out-of-module
 # testing.  It changes to the top-level directory of the module, changes
 # the import path, and does a direct import.
@@ -538,12 +539,15 @@ class TestDoxypypy(unittest.TestCase):
         self.snippetComparison(TestDoxypypy.__sampleRaises)
 
     @staticmethod
-    def readAndParseFile(inFilename, options):
+    def readAndParseFile(inFilename, options, encoding="ASCII"):
         """
         Helper function to read and parse a given file and create an AST walker.
         """
         # Read contents of input file.
-        inFile = open(inFilename)
+        if encoding == 'ASCII':
+            inFile = open(inFilename)
+        else:
+            inFile = codecsOpen(inFilename, encoding=encoding)
         lines = inFile.readlines()
         inFile.close()
         # Create the abstract syntax tree for the input file.
@@ -552,7 +556,7 @@ class TestDoxypypy(unittest.TestCase):
         # Output the modified source.
         return testWalker.getLines()
 
-    def compareAgainstGoldStandard(self, inFilename):
+    def compareAgainstGoldStandard(self, inFilename, encoding="ASCII"):
         """
         Read and process the input file and compare its output against the gold
         standard.
@@ -567,7 +571,8 @@ class TestDoxypypy(unittest.TestCase):
         )
         for options in trials:
             output = self.readAndParseFile(inFilename,
-                                           TestDoxypypy.__Options(*options[1]))
+                                           TestDoxypypy.__Options(*options[1]),
+                                           encoding=encoding)
             goldFilename = splitext(inFilename)[0] + options[0] + '.py'
             goldFile = open(goldFilename)
             goldContentLines = goldFile.readlines()
@@ -635,6 +640,40 @@ class TestDoxypypy(unittest.TestCase):
         sampleName = 'doxypypy/test/sample_maze.py'
         self.compareAgainstGoldStandard(sampleName)
 
+    def test_utf8_bom(self):
+        """
+        Test a trivial UTF-8 file with a BOM.
+        """
+        sampleName = 'doxypypy/test/sample_utf8bom.py'
+        self.compareAgainstGoldStandard(sampleName, encoding="UTF-8-SIG")
+
+    def test_utf16be_bom(self):
+        """
+        Test a trivial UTF-16-BE file with a BOM.
+        """
+        sampleName = 'doxypypy/test/sample_utf16bebom.py'
+        self.compareAgainstGoldStandard(sampleName, encoding="UTF-16")
+
+    def test_utf16le_bom(self):
+        """
+        Test a trivial UTF-16-LE file with a BOM.
+        """
+        sampleName = 'doxypypy/test/sample_utf16lebom.py'
+        self.compareAgainstGoldStandard(sampleName, encoding="UTF-16")
+
+    def test_utf32be_bom(self):
+        """
+        Test a trivial UTF-32-BE file with a BOM.
+        """
+        sampleName = 'doxypypy/test/sample_utf32bebom.py'
+        self.compareAgainstGoldStandard(sampleName, encoding="UTF-32")
+
+    def test_utf32le_bom(self):
+        """
+        Test a trivial UTF-32-LE file with a BOM.
+        """
+        sampleName = 'doxypypy/test/sample_utf32lebom.py'
+        self.compareAgainstGoldStandard(sampleName, encoding="UTF-32")
 
 if __name__ == '__main__':
     # When executed from the command line, run all the tests via unittest.

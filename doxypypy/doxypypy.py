@@ -760,8 +760,10 @@ def main():
     """
     from optparse import OptionParser, OptionGroup
     from os import sep
-    from os.path import basename
+    from os.path import basename, getsize
     from sys import argv, exit as sysExit
+    from chardet import detect
+    from codecs import BOM_UTF8, open as codecsOpen
 
     def optParse():
         """
@@ -834,8 +836,25 @@ def main():
     # Figure out what is being requested.
     (options, inFilename) = optParse()
 
+    # Figure out encoding of input file.
+    numOfSampleBytes = min(getsize(inFilename), 32)
+    sampleBytes = open(inFilename, 'rb').read(numOfSampleBytes)
+    sampleByteAnalysis = detect(sampleBytes)
+    encoding = sampleByteAnalysis['encoding']
+
+    # Switch to generic versions to strip the BOM automatically.
+    if sampleBytes.startswith(BOM_UTF8):
+        encoding = 'UTF-8-SIG'
+    if encoding.startswith("UTF-16"):
+        encoding = "UTF-16"
+    if encoding.startswith("UTF-32"):
+        encoding = "UTF-32"
+
     # Read contents of input file.
-    inFile = open(inFilename)
+    if encoding == 'ascii':
+        inFile = open(inFilename)
+    else:
+        inFile = codecsOpen(inFilename, encoding=encoding)
     lines = inFile.readlines()
     inFile.close()
     # Create the abstract syntax tree for the input file.
