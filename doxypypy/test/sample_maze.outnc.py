@@ -11,6 +11,7 @@
 #of features like keyword arguments and generators and has a docstring
 #that documents them both appropriately.
 #
+# @namespace sample_maze
 
 
 from sys import stdout

@@ -6,6 +6,7 @@
 #and protected (by convention only, a.k.a. "bed lump")
 #variables.
 #
+# @namespace sample_privacy
 
 __notPrivateModuleAttr__ = 1
 ## @var __privateModuleAttr

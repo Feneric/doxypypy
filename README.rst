@@ -131,6 +131,24 @@ the perfect place for doctests.
 
 Additional more comprehensive examples can be found in the test area.
 
+Installing doxypypy
+-------------------
+
+One can use either :code:`pip` or :code:`easy_install` for installation.
+Running either:
+
+.. code-block:: shell
+
+    pip install doxypypy
+
+or:
+
+.. code-block:: shell
+
+    easy_install doxypypy
+
+with administrator privileges should do the trick.
+
 Previewing doxypypy Output
 --------------------------
 
@@ -139,13 +157,13 @@ preview the filtered results with:
 
 .. code-block:: shell
 
-    python -m doxypypy.doxypypy -a -c file.py
+    doxypypy -a -c file.py
 
 Typically you'll want to redirect output to a file for viewing in a text editor:
 
 .. code-block:: shell
 
-    python -m doxypypy.doxypypy -a -c file.py > file.py.out
+    doxypypy -a -c file.py > file.py.out
 
 Invoking doxypypy from Doxygen
 ------------------------------
@@ -166,14 +184,14 @@ For Unix-like operating systems, `py_filter` should like something like this:
 .. code-block:: shell
 
     #!/bin/bash
-    python -m doxypypy.doxypypy -a -c $1
+    doxypypy -a -c $1
 
 In Windows, the batch file should be named `py_filter.bat`, and need only
 contain the one line:
 
 .. code-block:: shell
 
-    python -m doxypypy.doxypypy -a -c %1
+    doxypypy -a -c %1
 
 Running Doxygen as usual should now run all Python code through doxypypy.  Be
 sure to carefully browse the Doxygen output the first time to make sure that
