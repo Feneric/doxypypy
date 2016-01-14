@@ -135,7 +135,7 @@ Installing doxypypy
 -------------------
 
 One can use either :code:`pip` or :code:`easy_install` for installation.
-Running either
+Running either:
 
 .. code-block:: shell
 
