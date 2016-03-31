@@ -58,6 +58,7 @@ class AstWalker(NodeVisitor):
                                    r"(?:module|class|directly)?"
                                    r"(?:Provides|Implements)\(\s*(.+)\s*\)",
                                    IGNORECASE)
+    __classRE = regexpCompile(r"^\s*class\s+(\S+)\s*\((\S+)\):")
     __interfaceRE = regexpCompile(r"^\s*class\s+(\S+)\s*\(\s*(?:zope\.)?"
                                   r"(?:interface\.)?"
                                   r"Interface\s*\)\s*:", IGNORECASE)
@@ -710,6 +711,15 @@ class AstWalker(NodeVisitor):
         # if a function is a method or an interface method definition or if
         # a class is fully contained within another class.
         containingNodes = kwargs.get('containingNodes') or []
+
+        # Remove object class of the inherited class list to avoid that all
+        # new-style class inherits from object in the hierarchy class
+        line = self.lines[lineNum]
+        match = AstWalker.__classRE.match(line)
+        if match:
+            if match.group(2) == 'object':
+                self.lines[lineNum] = line[:match.start(2)] + line[match.end(2):]
+
         match = AstWalker.__interfaceRE.match(self.lines[lineNum])
         if match:
             if self.options.debug:
