@@ -712,13 +712,14 @@ class AstWalker(NodeVisitor):
         # a class is fully contained within another class.
         containingNodes = kwargs.get('containingNodes') or []
 
-        # Remove object class of the inherited class list to avoid that all
-        # new-style class inherits from object in the hierarchy class
-        line = self.lines[lineNum]
-        match = AstWalker.__classRE.match(line)
-        if match:
-            if match.group(2) == 'object':
-                self.lines[lineNum] = line[:match.start(2)] + line[match.end(2):]
+        if not self.options.object_respect:
+            # Remove object class of the inherited class list to avoid that all
+            # new-style class inherits from object in the hierarchy class
+            line = self.lines[lineNum]
+            match = AstWalker.__classRE.match(line)
+            if match:
+                if match.group(2) == 'object':
+                    self.lines[lineNum] = line[:match.start(2)] + line[match.end(2):]
 
         match = AstWalker.__interfaceRE.match(self.lines[lineNum])
         if match:
@@ -812,6 +813,11 @@ def main():
             "-s", "--stripinit",
             action="store_true", dest="stripinit",
             help="strip __init__ from namespace"
+        )
+        parser.add_option(
+            "-O", "--object-respect",
+            action="store_true", dest="object_respect",
+            help="By default, doxypypy hides object class from class dependencies even if class inherits explictilty from objects (new-style class), this option disable this."
         )
         group = OptionGroup(parser, "Debug Options")
         group.add_option(
