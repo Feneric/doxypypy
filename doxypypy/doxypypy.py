@@ -58,6 +58,7 @@ class AstWalker(NodeVisitor):
                                    r"(?:module|class|directly)?"
                                    r"(?:Provides|Implements)\(\s*(.+)\s*\)",
                                    IGNORECASE)
+    __classRE = regexpCompile(r"^\s*class\s+(\S+)\s*\((\S+)\):")
     __interfaceRE = regexpCompile(r"^\s*class\s+(\S+)\s*\(\s*(?:zope\.)?"
                                   r"(?:interface\.)?"
                                   r"Interface\s*\)\s*:", IGNORECASE)
@@ -677,7 +678,7 @@ class AstWalker(NodeVisitor):
         # hierarchy so we can keep track of context.  This will let us tell
         # if a function is nested within another function or even if a class
         # is nested within a function.
-        containingNodes = kwargs.get('containingNodes', []) or []
+        containingNodes = kwargs.get('containingNodes') or []
         containingNodes.append((node.name, 'function'))
         if self.options.topLevelNamespace:
             fullPathNamespace = self._getFullPathName(containingNodes)
@@ -709,7 +710,17 @@ class AstWalker(NodeVisitor):
         # hierarchy so we can keep track of context.  This will let us tell
         # if a function is a method or an interface method definition or if
         # a class is fully contained within another class.
-        containingNodes = kwargs.get('containingNodes', []) or []
+        containingNodes = kwargs.get('containingNodes') or []
+
+        if not self.options.object_respect:
+            # Remove object class of the inherited class list to avoid that all
+            # new-style class inherits from object in the hierarchy class
+            line = self.lines[lineNum]
+            match = AstWalker.__classRE.match(line)
+            if match:
+                if match.group(2) == 'object':
+                    self.lines[lineNum] = line[:match.start(2)] + line[match.end(2):]
+
         match = AstWalker.__interfaceRE.match(self.lines[lineNum])
         if match:
             if self.options.debug:
@@ -803,6 +814,11 @@ def main():
             action="store_true", dest="stripinit",
             help="strip __init__ from namespace"
         )
+        parser.add_option(
+            "-O", "--object-respect",
+            action="store_true", dest="object_respect",
+            help="By default, doxypypy hides object class from class dependencies even if class inherits explictilty from objects (new-style class), this option disable this."
+        )
         group = OptionGroup(parser, "Debug Options")
         group.add_option(
             "-d", "--debug",
@@ -840,14 +856,14 @@ def main():
     numOfSampleBytes = min(getsize(inFilename), 32)
     sampleBytes = open(inFilename, 'rb').read(numOfSampleBytes)
     sampleByteAnalysis = detect(sampleBytes)
-    encoding = sampleByteAnalysis['encoding']
+    encoding = sampleByteAnalysis['encoding'] or 'ascii'
 
     # Switch to generic versions to strip the BOM automatically.
     if sampleBytes.startswith(BOM_UTF8):
         encoding = 'UTF-8-SIG'
     if encoding.startswith("UTF-16"):
         encoding = "UTF-16"
-    if encoding.startswith("UTF-32"):
+    elif encoding.startswith("UTF-32"):
         encoding = "UTF-32"
 
     # Read contents of input file.
