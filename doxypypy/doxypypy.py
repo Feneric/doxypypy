@@ -467,7 +467,7 @@ class AstWalker(NodeVisitor):
                     if '@property\t' in firstVarLine:
                         break
                 lastVarLineNum = len(self.docLines)
-                if '@property\t' in firstVarLine:
+                if lastVarLineNum > 0 and '@property\t' in firstVarLine:
                     while lastVarLineNum > firstVarLineNum:
                         lastVarLineNum -= 1
                         if '@property\t' in self.docLines[lastVarLineNum]:
