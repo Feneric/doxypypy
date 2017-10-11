@@ -240,7 +240,7 @@ class AstWalker(NodeVisitor):
                                 inCodeBlock = False
                             firstLine = AstWalker.__argparamRE.match(lines[-1])
                             if prefix.startswith("@param") and firstLine:
-                                lines[-1] = "{2}# @{0}\t{1}".format(firstLine.group(1), firstLine.group(2), linesep)
+                                lines[-1] = "# @{0}\t{1}".format(firstLine.group(1), firstLine.group(2), linesep)
 
                                 lines[-1] += "{0}# @parblock".format(linesep)
                                 lines[-1] += "{1}# {0}".format(firstLine.group(3), linesep)
