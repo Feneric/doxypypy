@@ -218,41 +218,40 @@ class AstWalker(NodeVisitor):
                             timeToSend = True
 
                     if inArgBlock:
+                        line = line.rstrip()
                         match = AstWalker.__blanklineRE.match(line)
                         if match:
-                            # lines.append("# {0}{1}".format(line, linesep))
-                            # continue
                             indent = theArgIndent+self.options.tablength
                         else:
                             indent = len(line.expandtabs(self.options.tablength)) - \
                                 len(line.expandtabs(self.options.tablength).lstrip())
                         if indent <= theArgIndent:
                             if inCodeBlock:
-                                lines.append("# @endcode{0}".format(linesep))
+                                lines[-1] += "{0}# @endcode".format(linesep)
                                 inCodeBlock = False
                             inArgBlock = False
                             if inParBlock:
-                                lines.append("# @endparblock{0}".format(linesep))
+                                lines[-1] += "{0}# @endparblock".format(linesep)
                             inParBlock = False
                             theArgIndent = 0
                         elif indent == theArgIndent+self.options.tablength:
                             if inCodeBlock:
-                                lines.append("# @endcode{0}".format(linesep))
+                                lines[-1] += "{0}# @endcode".format(linesep)
                                 inCodeBlock = False
                             firstLine = AstWalker.__argparamRE.match(lines[-1])
-                            if firstLine:
-                                lines[-1] = "# @{0}\t{1}{2}".format(firstLine.group(1), firstLine.group(2), linesep)
+                            if prefix.startswith("@param") and firstLine:
+                                lines[-1] = "{2}# @{0}\t{1}".format(firstLine.group(1), firstLine.group(2), linesep)
 
-                                lines.append("# @parblock{0}".format(linesep))
-                                lines.append("# {0}{1}".format(firstLine.group(3), linesep))
+                                lines[-1] += "{0}# @parblock".format(linesep)
+                                lines[-1] += "{1}# {0}".format(firstLine.group(3), linesep)
                                 inParBlock = True
-                            lines.append("# {0}{1}".format(line[theArgIndent+self.options.tablength:], linesep))
+                            lines[-1] += "{1}# {0}".format(line[theArgIndent+self.options.tablength:], linesep)
                             continue
                         else:
                             if not inCodeBlock:
-                                lines.append("# @code{0}".format(linesep))
+                                lines[-1] += "{0}# @code".format(linesep)
                                 inCodeBlock = True
-                            lines.append("# {0}{1}".format(line[theArgIndent+self.options.tablength:], linesep))
+                            lines[-1] += "{1}# {0}".format(line[theArgIndent+self.options.tablength:], linesep)
                             continue
 
                     if inSection:
