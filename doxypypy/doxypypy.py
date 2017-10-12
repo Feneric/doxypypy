@@ -233,6 +233,8 @@ class AstWalker(NodeVisitor):
                     if match:
                         # We've got a "returns" section
                         line = line.replace(match.group(0), ' @return\t').rstrip()
+                        line += " \parblock".format(linesep)
+                        inSection = True
                         prefix = '@return\t'
                     else:
                         match = AstWalker.__argsStartRE.match(line)
