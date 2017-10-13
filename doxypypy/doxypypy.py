@@ -118,7 +118,7 @@ class AstWalker(NodeVisitor):
         return line, inCodeBlock
 
     @coroutine
-    def _checkIfCode(self, inCodeBlock):
+    def _checkIfCode(self, inCodeBlockObj):
         """Checks whether or not a given line appears to be Python code."""
         while True:
             line, lines, lineNum = (yield)
@@ -160,16 +160,16 @@ class AstWalker(NodeVisitor):
                         testLine = line.strip()
                         #testLineNum = 1
                 currentLineNum = lineNum - testLineNum
-            if not inCodeBlock and lineOfCode:
-                inCodeBlock = True
+            if not inCodeBlockObj[0] and lineOfCode:
+                inCodeBlockObj[0] = True
                 lines[currentLineNum] = '{0}{1}# @code{1}'.format(
                     lines[currentLineNum],
                     linesep
                 )
-            elif inCodeBlock and lineOfCode is False:
+            elif inCodeBlockObj[0] and lineOfCode is False:
                 # None is ambiguous, so strict checking
                 # against False is necessary.
-                inCodeBlock = False
+                inCodeBlockObj[0] = False
                 lines[currentLineNum] = '{0}{1}# @endcode{1}'.format(
                     lines[currentLineNum],
                     linesep
@@ -188,12 +188,12 @@ class AstWalker(NodeVisitor):
         lines = []
         timeToSend = False
         inCodeBlock = False
+        inCodeBlockObj = [False]
         inSection = False
         prefix = ''
         firstLineNum = -1
         sectionHeadingIndent = 0
-        codeChecker = self._checkIfCode(False)
-        proseChecker = self._checkIfCode(True)
+        codeChecker = self._checkIfCode(inCodeBlockObj)
         while True:
             lineNum, line = (yield)
             if firstLineNum < 0:
@@ -208,6 +208,7 @@ class AstWalker(NodeVisitor):
                             # We've got a simple one-line Doxygen command
                             lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                 lines[-1], inCodeBlock)
+                            inCodeBlockObj[0] = inCodeBlock
                             writer.send((firstLineNum, lineNum - 1, lines))
                             lines = []
                             firstLineNum = lineNum
@@ -232,6 +233,9 @@ class AstWalker(NodeVisitor):
                     match = AstWalker.__returnsStartRE.match(line)
                     if match:
                         # We've got a "returns" section
+                        lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                            lines[-1], inCodeBlock)
+                        inCodeBlockObj[0] = inCodeBlock
                         line = line.replace(match.group(0), ' @return\t').rstrip()
                         prefix = '@return\t'
                     else:
@@ -245,6 +249,7 @@ class AstWalker(NodeVisitor):
                                 prefix = '@param\t'
                             lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                 lines[-1], inCodeBlock)
+                            inCodeBlockObj[0] = inCodeBlock
                             lines.append('#' + line)
                             continue
                         else:
@@ -270,6 +275,7 @@ class AstWalker(NodeVisitor):
                                         prefix = '@exception\t'
                                     lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                         lines[-1], inCodeBlock)
+                                    inCodeBlockObj[0] = inCodeBlock
                                     lines.append('#' + line)
                                     continue
                                 else:
@@ -288,6 +294,7 @@ class AstWalker(NodeVisitor):
                                            and self.options.autocode:
                                             # We've got an "example" section
                                             inCodeBlock = True
+                                            inCodeBlockObj[0] = True
                                             line = line.replace(match.group(0),
                                                                 ' @b Examples{0}# @code'.format(linesep))
                                         else:
@@ -307,6 +314,7 @@ class AstWalker(NodeVisitor):
                                                     lines[-1] = '#'
                                                 lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                                     lines[-1], inCodeBlock)
+                                                inCodeBlockObj[0] = inCodeBlock
                                                 lines.append('#' + line)
                                                 continue
                                             elif prefix:
@@ -315,13 +323,6 @@ class AstWalker(NodeVisitor):
                                                     # Probably a single list item
                                                     line = ' {0}\t{1}'.format(
                                                         prefix, match.group(0))
-                                                elif self.options.autocode and inCodeBlock:
-                                                    proseChecker.send(
-                                                        (
-                                                            line, lines,
-                                                            lineNum - firstLineNum
-                                                        )
-                                                    )
                                                 elif self.options.autocode:
                                                     codeChecker.send(
                                                         (
@@ -329,6 +330,16 @@ class AstWalker(NodeVisitor):
                                                             lineNum - firstLineNum
                                                         )
                                                     )
+                                                    inCodeBlock = inCodeBlockObj[0]
+                                            else:
+                                                if self.options.autocode:
+                                                    codeChecker.send(
+                                                        (
+                                                            line, lines,
+                                                            lineNum - firstLineNum
+                                                        )
+                                                    )
+                                                    inCodeBlock = inCodeBlockObj[0]
 
                 # If we were passed a tail, append it to the docstring.
                 # Note that this means that we need a docstring for this
@@ -350,6 +361,7 @@ class AstWalker(NodeVisitor):
             if timeToSend:
                 lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1],
                                                                inCodeBlock)
+                inCodeBlockObj[0] = inCodeBlock
                 writer.send((firstLineNum, lineNum, lines))
                 lines = []
                 firstLineNum = -1
