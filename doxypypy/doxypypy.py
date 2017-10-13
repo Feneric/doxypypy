@@ -245,13 +245,13 @@ class AstWalker(NodeVisitor):
                                 lines[-1] += "{0}# @parblock".format(linesep)
                                 lines[-1] += "{1}# {0}".format(firstLine.group(3), linesep)
                                 inParBlock = True
-                            lines[-1] += "{1}# {0}".format(line[theArgIndent+self.options.tablength:], linesep)
+                            lines.append("# {0}".format(line[theArgIndent+self.options.tablength:]))
                             continue
                         else:
                             if not inCodeBlock:
                                 lines[-1] += "{0}# @code".format(linesep)
                                 inCodeBlock = True
-                            lines[-1] += "{1}# {0}".format(line[theArgIndent+self.options.tablength:], linesep)
+                            lines.append("# {0}".format(line[theArgIndent+self.options.tablength:]))
                             continue
 
                     if inSection:
