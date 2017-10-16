@@ -31,7 +31,6 @@ def coroutine(func):
         return __cr
     return __start
 
-
 class AstWalker(NodeVisitor):
     """
     A walker that'll recursively progress through an AST.
@@ -223,16 +222,19 @@ class AstWalker(NodeVisitor):
                                 len(line.expandtabs(self.options.tablength).lstrip())
                             if indent <= sectionHeadingIndent:
                                 inSection = False
-                            else:
-                                if lines[-1] == '#':
-                                    # If the last line was empty, but we're still in a section
-                                    # then we need to start a new paragraph.
-                                    lines[-1] = '# @par'
+                                lines[-1] += "{0}# \endparbock".format(linesep)
+                            # else:
+                                # if lines[-1] == '#':
+                                    # # If the last line was empty, but we're still in a section
+                                    # # then we need to start a new paragraph.
+                                    # lines[-1] = '# @par'
 
                     match = AstWalker.__returnsStartRE.match(line)
                     if match:
                         # We've got a "returns" section
                         line = line.replace(match.group(0), ' @return\t').rstrip()
+                        line += " \parblock".format(linesep)
+                        inSection = True
                         prefix = '@return\t'
                     else:
                         match = AstWalker.__argsStartRE.match(line)
@@ -308,6 +310,8 @@ class AstWalker(NodeVisitor):
                                                 lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                                     lines[-1], inCodeBlock)
                                                 lines.append('#' + line)
+                                                lines[-1] += "{0}# @parblock".format(linesep)
+                                                inParBlock = True
                                                 continue
                                             elif prefix:
                                                 match = AstWalker.__singleListItemRE.match(line)
@@ -316,6 +320,21 @@ class AstWalker(NodeVisitor):
                                                     line = ' {0}\t{1}'.format(
                                                         prefix, match.group(0))
                                                 elif self.options.autocode and inCodeBlock:
+                                                    proseChecker.send(
+                                                        (
+                                                            line, lines,
+                                                            lineNum - firstLineNum
+                                                        )
+                                                    )
+                                                elif self.options.autocode:
+                                                    codeChecker.send(
+                                                        (
+                                                            line, lines,
+                                                            lineNum - firstLineNum
+                                                        )
+                                                    )
+                                            else:
+                                                if self.options.autocode and inCodeBlock:
                                                     proseChecker.send(
                                                         (
                                                             line, lines,
