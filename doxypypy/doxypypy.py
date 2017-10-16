@@ -133,7 +133,7 @@ class AstWalker(NodeVisitor):
                     line, lines, lineNum = (yield)
                     testLine = line.strip()
                     #testLineNum = 1
-                elif testLine.startswith('>>> '):
+                elif testLine.startswith('>>>'):
                     # This is definitely code.
                     lineOfCode = True
                 else:
@@ -144,7 +144,7 @@ class AstWalker(NodeVisitor):
                         else:
                             line, lines, lineNum = (yield)
                             line = line.strip()
-                            if line.startswith('>>> '):
+                            if line.startswith('>>>'):
                                 # Definitely code, don't compile further.
                                 lineOfCode = True
                             else:
