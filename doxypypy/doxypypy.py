@@ -14,8 +14,8 @@ doctests.
 """
 
 from ast import NodeVisitor, parse, iter_fields, AST, Name, get_docstring
-import re
-from re import compile as regexpCompile, IGNORECASE, MULTILINE
+from re import compile as regexpCompile,\
+               match as regexpMatch, IGNORECASE, MULTILINE
 from types import GeneratorType
 from sys import stderr
 from os import linesep
@@ -839,7 +839,7 @@ class AstWalker(NodeVisitor):
     def getLines(self):
         """Return the modified file once processing has been completed."""
         return linesep.join(((line[:-1] if line[-1] == linesep else line)\
-                    if re.match("^\s*#", line)\
+                    if regexpMatch("^\s*#", line)\
                     else line.rstrip())\
                 for line in self.lines)
 
