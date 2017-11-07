@@ -388,7 +388,8 @@ class TestDoxypypy(unittest.TestCase):
             )
         ]
         for testLines, outputLines in testPairs:
-            codeChecker = self.dummyWalker._checkIfCode(False)
+            inCodeBlockObj = [False]
+            codeChecker = self.dummyWalker._checkIfCode(inCodeBlockObj)
             for lineNum, line in enumerate(testLines):
                 codeChecker.send((line, testLines, lineNum))
             self.assertEqual(testLines, outputLines)
@@ -453,7 +454,8 @@ class TestDoxypypy(unittest.TestCase):
             )
         ]
         for testLines, outputLines in testPairs:
-            proseChecker = self.dummyWalker._checkIfCode(True)
+            inCodeBlockObj = [True]
+            proseChecker = self.dummyWalker._checkIfCode(inCodeBlockObj)
             for lineNum, line in enumerate(testLines):
                 proseChecker.send((line, testLines, lineNum))
             self.assertEqual(testLines, outputLines)
