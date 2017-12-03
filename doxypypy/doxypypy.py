@@ -17,7 +17,7 @@ from ast import NodeVisitor, parse, iter_fields, AST, Name, get_docstring
 from re import compile as regexpCompile, IGNORECASE, MULTILINE
 from types import GeneratorType
 from sys import stderr
-from os import linesep
+from os import linesep, path
 from string import whitespace
 from codeop import compile_command
 
@@ -603,7 +603,7 @@ class AstWalker(NodeVisitor):
             stderr.write("# Module {0}{1}".format(self.options.fullPathNamespace,
                                                   linesep))
         if get_docstring(node):
-            if self.options.topLevelNamespace:
+            if self.options.useNamespace:
                 fullPathNamespace = self._getFullPathName(containingNodes)
                 contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
                 tail = '@namespace {0}'.format(contextTag)
@@ -692,13 +692,7 @@ class AstWalker(NodeVisitor):
         # is nested within a function.
         containingNodes = kwargs.get('containingNodes') or []
         containingNodes.append((node.name, 'function'))
-        if self.options.topLevelNamespace:
-            fullPathNamespace = self._getFullPathName(containingNodes)
-            contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
-            modifiedContextTag = self._processMembers(node, contextTag)
-            tail = '@namespace {0}'.format(modifiedContextTag)
-        else:
-            tail = self._processMembers(node, '')
+        tail = self._processMembers(node, '')
         if get_docstring(node):
             self._processDocstring(node, tail,
                                    containingNodes=containingNodes)
@@ -742,20 +736,12 @@ class AstWalker(NodeVisitor):
             if self.options.debug:
                 stderr.write("# Class {0.name}{1}".format(node, linesep))
             containingNodes.append((node.name, 'class'))
-        if self.options.topLevelNamespace:
-            fullPathNamespace = self._getFullPathName(containingNodes)
-            contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
-            tail = '@namespace {0}'.format(contextTag)
-        else:
-            tail = ''
         # Class definitions have one Doxygen-significant special case:
         # interface definitions.
         if match:
-            contextTag = '{0}{1}# @interface {2}'.format(tail,
-                                                         linesep,
-                                                         match.group(1))
+            contextTag = '# @interface {2}'.format(match.group(1))
         else:
-            contextTag = tail
+            contextTag = ''
         contextTag = self._processMembers(node, contextTag)
         if get_docstring(node):
             self._processDocstring(node, contextTag,
@@ -827,6 +813,11 @@ def main():
             help="strip __init__ from namespace"
         )
         parser.add_option(
+            "-i", "--suppress-namespace",
+            action="store_false", dest="useNamespace", default=True,
+            help="suppress the namespace from being listed explicitly"
+        )
+        parser.add_option(
             "-O", "--object-respect",
             action="store_true", dest="object_respect",
             help="By default, doxypypy hides object class from class dependencies even if class inherits explictilty from objects (new-style class), this option disable this."
@@ -848,15 +839,31 @@ def main():
             sysExit(-1)
 
         # Turn the full path filename into a full path module location.
-        fullPathNamespace = filename[0].replace(sep, '.')[:-3]
+        fullPathNamespace = filename[0].replace(sep, '.')[:-3].lstrip('.')
         # Use any provided top-level namespace argument to trim off excess.
         realNamespace = fullPathNamespace
-        if options.topLevelNamespace:
+        if options.topLevelNamespace is not None:
+            options.useNamespace = True
             namespaceStart = fullPathNamespace.find(options.topLevelNamespace)
-            if namespaceStart >= 0:
-                realNamespace = fullPathNamespace[namespaceStart:]
+        else:
+            # we need to figure out the top level directory. We'll do that by continuously
+            # walking up the directory path until there are no more __init__ files.
+            top_level_guess = path.dirname(filename[0])
+            while path.exists(path.join(top_level_guess, '__init__.py')):
+                new_top_level_guess = path.dirname(top_level_guess)
+                if new_top_level_guess == top_level_guess:
+                    # Top of the file system
+                    break
+                else:
+                    top_level_guess = new_top_level_guess
+            namespaceStart = len(top_level_guess)
+
+        if namespaceStart >= 0:
+            realNamespace = fullPathNamespace[namespaceStart:]
+
         if options.stripinit:
             realNamespace = realNamespace.replace('.__init__', '')
+            options.useNamespace = True
         options.fullPathNamespace = realNamespace
 
         return options, filename[0]
@@ -883,7 +890,11 @@ def main():
         inFile = open(inFilename)
     else:
         inFile = codecsOpen(inFilename, encoding=encoding)
-    lines = inFile.readlines()
+    try:
+        lines = inFile.readlines()
+    except UnicodeDecodeError:
+        import sys
+        raise IOError(' '.join(sys.argv))
     inFile.close()
     # Create the abstract syntax tree for the input file.
     astWalker = AstWalker(lines, options, inFilename)
