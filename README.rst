@@ -200,5 +200,5 @@ Doxygen properly found and executed doxypypy.
 .. _Doxygen: http://www.stack.nl/~dimitri/doxygen/
 .. _doxypy: https://github.com/Feneric/doxypy
 .. _PEP 257: http://www.python.org/dev/peps/pep-0257/
-.. _Google Python Style Guide: http://google-styleguide.googlecode.com/svn/trunk/pyguide.html?showone=Comments#Comments
+.. _Google Python Style Guide: https://google.github.io/styleguide/pyguide.html?showone=Comments#Comments
 
