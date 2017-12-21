@@ -36,7 +36,7 @@
 #        And how they behave with multiple paragraphs.
 #        That contain multiple lines.
 #
-#    Paragraphs stading by themselves without indention, should be left alone.
+#    Paragraphs standing by themselves without indentation, should be left alone.
 #
 def function(arg1, arg2):
     return "Hello World"
