@@ -506,16 +506,6 @@ class AstWalker(NodeVisitor):
                             self.docLines[-1] += defLines[-1][namespaceLoc:]
                             defLines[-1] = defLines[-1][:namespaceLoc]
 
-        # if it's a property, rewrite the definition to something Doxygen understands
-        # (Use the getter for the documentation)
-        if typeName == 'FunctionDef':
-            if len(node.decorator_list) > 0:
-                match = AstWalker.__indentRE.match(defLines[0])
-                indentStr = match and match.group(1) or ''
-                if "property" == getattr(node.decorator_list[0], "id", None):
-                    defLines[0] = indentStr + "{} = property".format(node.name) + linesep + indentStr + "## \private" + linesep + defLines[0]
-                if "setter" == getattr(node.decorator_list[0], "attr", None):
-                    defLines[0] = indentStr + "## \private" + linesep + defLines[0]
 
         # For classes and functions, apply our changes and reverse the
         # order of the declaration and docstring, and for modules just
@@ -697,6 +687,17 @@ class AstWalker(NodeVisitor):
         """
         if self.options.debug:
             stderr.write("# Function {0.name}{1}".format(node, linesep))
+
+        # if it's a property, rewrite the definition to something Doxygen understands
+        # (We'll use the getter for the documentation)
+        if len(node.decorator_list) > 0:
+            match = AstWalker.__indentRE.match(self.lines[node.lineno-1])
+            indentStr = match and match.group(1) or ''
+            if "property" == getattr(node.decorator_list[0], "id", None):
+                self.lines[node.lineno - 1] = indentStr + "{} = property".format(node.name) + linesep + indentStr + "## \private" + linesep + self.lines[node.lineno-1]
+            if "setter" == getattr(node.decorator_list[0], "attr", None):
+                self.lines[node.lineno - 1] = indentStr + "## \private" + linesep + self.lines[node.lineno-1]
+
         # Push either 'interface' or 'class' onto our containing nodes
         # hierarchy so we can keep track of context.  This will let us tell
         # if a function is nested within another function or even if a class
