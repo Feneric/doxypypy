@@ -173,25 +173,7 @@ tag in your Doxyfile as follows:
 
 .. code-block:: shell
 
-    FILTER_PATTERNS        = *.py=py_filter
-
-`py_filter` must be available in your path as a shell script (or Windows batch
-file).  If you wish to run `py_filter` in a particular directory you can include
-the full or relative path.
-
-For Unix-like operating systems, `py_filter` should like something like this:
-
-.. code-block:: shell
-
-    #!/bin/bash
-    doxypypy -a -c $1
-
-In Windows, the batch file should be named `py_filter.bat`, and need only
-contain the one line:
-
-.. code-block:: shell
-
-    doxypypy -a -c %1
+    FILTER_PATTERNS        = *.py="doxypypy -a -c"
 
 Running Doxygen as usual should now run all Python code through doxypypy.  Be
 sure to carefully browse the Doxygen output the first time to make sure that
