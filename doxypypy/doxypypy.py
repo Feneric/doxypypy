@@ -773,7 +773,7 @@ class AstWalker(NodeVisitor):
 
     def getLines(self):
         """Return the modified file once processing has been completed."""
-        return linesep.join(line.rstrip() for line in self.lines)
+        return '\n'.join(line.rstrip() for line in self.lines)
 
 
 def main():
