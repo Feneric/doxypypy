@@ -16,7 +16,7 @@ doctests.
 from ast import NodeVisitor, parse, iter_fields, AST, Name, get_docstring
 from re import compile as regexpCompile, IGNORECASE, MULTILINE
 from types import GeneratorType
-from sys import stderr
+from sys import stderr, stdout
 from os import linesep
 from string import whitespace
 from codeop import compile_command
@@ -773,7 +773,7 @@ class AstWalker(NodeVisitor):
 
     def getLines(self):
         """Return the modified file once processing has been completed."""
-        return '\n'.join(line.rstrip() for line in self.lines)
+        return linesep.join(line.rstrip() for line in self.lines)
 
 
 def main():
@@ -889,7 +889,12 @@ def main():
     astWalker = AstWalker(lines, options, inFilename)
     astWalker.parseLines()
     # Output the modified source.
-    print(astWalker.getLines())
+
+    # There is a "feature" in print on Windows. If linesep is
+    # passed, it will generate 0x0D 0x0D 0x0A each line which
+    # screws up Doxygen since it's expected 0x0D 0x0A line endings.
+    for line in astWalker.getLines().split(linesep):
+        print(line.rstrip())
 
 # See if we're running as a script.
 if __name__ == "__main__":
