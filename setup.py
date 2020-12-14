@@ -16,6 +16,9 @@ setup(
     author='Eric W. Brown',
     url='https://github.com/Feneric/doxypypy',
     packages=find_packages(),
+    install_requires=[
+        'chardet'
+    ],
     test_suite='doxypypy.test.test_doxypypy',
     entry_points={
         'console_scripts': [
