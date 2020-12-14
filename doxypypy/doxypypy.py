@@ -12,11 +12,12 @@ It can automatically turn PEP 257 compliant that follow the more restrictive
 Google style guide into appropriate Doxygen tags, and is even aware of
 doctests.
 """
+from __future__ import print_function
 
 from ast import NodeVisitor, parse, iter_fields, AST, Name, get_docstring
 from re import compile as regexpCompile, IGNORECASE, MULTILINE
 from types import GeneratorType
-from sys import stderr, stdout
+from sys import stderr
 from os import linesep
 from string import whitespace
 from codeop import compile_command
@@ -95,11 +96,10 @@ class AstWalker(NodeVisitor):
     __errorLineRE = regexpCompile(r"^\s*((?:\S+Error|Traceback.*):?\s*(.*)|@?[\w.]+)\s*$",
                                   IGNORECASE)
 
-    def __init__(self, lines, options, inFilename):
+    def __init__(self, lines, arguments):
         """Initialize a few class variables in preparation for our walk."""
         self.lines = lines
-        self.options = options
-        self.inFilename = inFilename
+        self.args = arguments
         self.docLines = []
 
     @staticmethod
@@ -132,7 +132,7 @@ class AstWalker(NodeVisitor):
                     # These are ambiguous.
                     line, lines, lineNum = (yield)
                     testLine = line.strip()
-                    #testLineNum = 1
+                    # testLineNum = 1
                 elif testLine.startswith('>>>'):
                     # This is definitely code.
                     lineOfCode = True
@@ -158,7 +158,7 @@ class AstWalker(NodeVisitor):
                         # Other errors are ambiguous.
                         line, lines, lineNum = (yield)
                         testLine = line.strip()
-                        #testLineNum = 1
+                        # testLineNum = 1
                 currentLineNum = lineNum - testLineNum
             if not inCodeBlockObj[0] and lineOfCode:
                 inCodeBlockObj[0] = True
@@ -201,7 +201,7 @@ class AstWalker(NodeVisitor):
             # Don't bother doing extra work if it's a sentinel.
             if line is not None:
                 # Also limit work if we're not parsing the docstring.
-                if self.options.autobrief:
+                if self.args.autobrief:
                     for doxyTag, tagRE in AstWalker.__singleLineREs.items():
                         match = tagRE.search(line)
                         if match:
@@ -220,8 +220,8 @@ class AstWalker(NodeVisitor):
                         # Does this one too? (Ignoring empty lines.)
                         match = AstWalker.__blanklineRE.match(line)
                         if not match:
-                            indent = len(line.expandtabs(self.options.tablength)) - \
-                                len(line.expandtabs(self.options.tablength).lstrip())
+                            indent = len(line.expandtabs(self.args.tablength)) - \
+                                len(line.expandtabs(self.args.tablength).lstrip())
                             if indent <= sectionHeadingIndent:
                                 inSection = False
                             else:
@@ -291,7 +291,7 @@ class AstWalker(NodeVisitor):
                                     else:
                                         match = AstWalker.__examplesStartRE.match(line)
                                         if match and lines[-1].strip() == '#' \
-                                           and self.options.autocode:
+                                           and self.args.autocode:
                                             # We've got an "example" section
                                             inCodeBlock = True
                                             inCodeBlockObj[0] = True
@@ -304,8 +304,8 @@ class AstWalker(NodeVisitor):
                                                 prefix = ''
                                                 inSection = True
                                                 # What's the indentation of the section heading?
-                                                sectionHeadingIndent = len(line.expandtabs(self.options.tablength)) \
-                                                    - len(line.expandtabs(self.options.tablength).lstrip())
+                                                sectionHeadingIndent = len(line.expandtabs(self.args.tablength)) \
+                                                    - len(line.expandtabs(self.args.tablength).lstrip())
                                                 line = line.replace(
                                                     match.group(0),
                                                     ' @par {0}'.format(match.group(1))
@@ -323,7 +323,7 @@ class AstWalker(NodeVisitor):
                                                     # Probably a single list item
                                                     line = ' {0}\t{1}'.format(
                                                         prefix, match.group(0))
-                                                elif self.options.autocode:
+                                                elif self.args.autocode:
                                                     codeChecker.send(
                                                         (
                                                             line, lines,
@@ -332,7 +332,7 @@ class AstWalker(NodeVisitor):
                                                     )
                                                     inCodeBlock = inCodeBlockObj[0]
                                             else:
-                                                if self.options.autocode:
+                                                if self.args.autocode:
                                                     codeChecker.send(
                                                         (
                                                             line, lines,
@@ -435,7 +435,7 @@ class AstWalker(NodeVisitor):
             docstringConverter.send((len(self.docLines) - 1, None))
 
         # Add a Doxygen @brief tag to any single-line description.
-        if self.options.autobrief:
+        if self.args.autobrief:
             safetyCounter = 0
             while len(self.docLines) > 0 and self.docLines[0].lstrip('#').strip() == '':
                 del self.docLines[0]
@@ -473,7 +473,7 @@ class AstWalker(NodeVisitor):
                or fullPathNamespace[-1][1] == 'interface':
                 defLines[-1] = '{0}{1}{2}pass'.format(defLines[-1],
                                                       linesep, indentStr)
-            elif self.options.autobrief and typeName == 'ClassDef':
+            elif self.args.autobrief and typeName == 'ClassDef':
                 # If we're parsing docstrings separate out class attribute
                 # definitions to get better Doxygen output.
                 for firstVarLineNum, firstVarLine in enumerate(self.docLines):
@@ -589,7 +589,7 @@ class AstWalker(NodeVisitor):
         (starting with the module itself) is returned.
         """
         assert isinstance(containingNodes, list)
-        return [(self.options.fullPathNamespace, 'module')] + containingNodes
+        return [(self.args.fullPathNamespace, 'module')] + containingNodes
 
     def visit_Module(self, node, **kwargs):
         """
@@ -598,12 +598,12 @@ class AstWalker(NodeVisitor):
         Process the module-level docstring and create appropriate Doxygen tags
         if autobrief option is set.
         """
-        containingNodes=kwargs.get('containingNodes', [])
-        if self.options.debug:
-            stderr.write("# Module {0}{1}".format(self.options.fullPathNamespace,
+        containingNodes = kwargs.get('containingNodes', [])
+        if self.args.debug:
+            stderr.write("# Module {0}{1}".format(self.args.fullPathNamespace,
                                                   linesep))
         if get_docstring(node):
-            if self.options.topLevelNamespace:
+            if self.args.topLevelNamespace:
                 fullPathNamespace = self._getFullPathName(containingNodes)
                 contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
                 tail = '@namespace {0}'.format(contextTag)
@@ -635,8 +635,8 @@ class AstWalker(NodeVisitor):
                     linesep,
                     match.group(3),
                     self.lines[lineNum].rstrip()
-                )
-            if self.options.debug:
+            )
+            if self.args.debug:
                 stderr.write("# Attribute {0.id}{1}".format(node.targets[0],
                                                             linesep))
         if isinstance(node.targets[0], Name):
@@ -651,7 +651,7 @@ class AstWalker(NodeVisitor):
                         linesep,
                         restrictionLevel,
                         self.lines[lineNum].rstrip()
-                    )
+                )
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=kwargs['containingNodes'])
 
@@ -671,7 +671,7 @@ class AstWalker(NodeVisitor):
             self.lines[lineNum] = '{0}## @implements {1}{2}{0}{3}{2}'.format(
                 match.group(1), match.group(2), linesep,
                 self.lines[lineNum].rstrip())
-            if self.options.debug:
+            if self.args.debug:
                 stderr.write("# Implements {0}{1}".format(match.group(1),
                                                           linesep))
         # Visit any contained nodes.
@@ -684,7 +684,7 @@ class AstWalker(NodeVisitor):
         Process a function's docstring, keeping well aware of the function's
         context and whether or not it's part of an interface definition.
         """
-        if self.options.debug:
+        if self.args.debug:
             stderr.write("# Function {0.name}{1}".format(node, linesep))
         # Push either 'interface' or 'class' onto our containing nodes
         # hierarchy so we can keep track of context.  This will let us tell
@@ -692,7 +692,7 @@ class AstWalker(NodeVisitor):
         # is nested within a function.
         containingNodes = kwargs.get('containingNodes') or []
         containingNodes.append((node.name, 'function'))
-        if self.options.topLevelNamespace:
+        if self.args.topLevelNamespace:
             fullPathNamespace = self._getFullPathName(containingNodes)
             contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
             modifiedContextTag = self._processMembers(node, contextTag)
@@ -724,7 +724,7 @@ class AstWalker(NodeVisitor):
         # a class is fully contained within another class.
         containingNodes = kwargs.get('containingNodes') or []
 
-        if not self.options.object_respect:
+        if not self.args.object_respect:
             # Remove object class of the inherited class list to avoid that all
             # new-style class inherits from object in the hierarchy class
             line = self.lines[lineNum]
@@ -735,14 +735,14 @@ class AstWalker(NodeVisitor):
 
         match = AstWalker.__interfaceRE.match(self.lines[lineNum])
         if match:
-            if self.options.debug:
+            if self.args.debug:
                 stderr.write("# Interface {0.name}{1}".format(node, linesep))
             containingNodes.append((node.name, 'interface'))
         else:
-            if self.options.debug:
+            if self.args.debug:
                 stderr.write("# Class {0.name}{1}".format(node, linesep))
             containingNodes.append((node.name, 'class'))
-        if self.options.topLevelNamespace:
+        if self.args.topLevelNamespace:
             fullPathNamespace = self._getFullPathName(containingNodes)
             contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
             tail = '@namespace {0}'.format(contextTag)
@@ -767,7 +767,7 @@ class AstWalker(NodeVisitor):
 
     def parseLines(self):
         """Form an AST for the code and produce a new version of the source."""
-        inAst = parse(''.join(self.lines), self.inFilename)
+        inAst = parse(''.join(self.lines), self.args.filename)
         # Visit all the nodes in our tree and apply Doxygen tags to the source.
         self.visit(inAst)
 
@@ -781,14 +781,14 @@ def main():
     Starts the parser on the file given by the filename as the first
     argument on the command line.
     """
-    from optparse import OptionParser, OptionGroup
+    from argparse import ArgumentParser
     from os import sep
     from os.path import basename, getsize
     from sys import argv, exit as sysExit
     from chardet import detect
     from codecs import BOM_UTF8, open as codecsOpen
 
-    def optParse():
+    def argParse():
         """
         Parses command line options.
 
@@ -798,75 +798,81 @@ def main():
         to trim away excess path information.
         """
 
-        parser = OptionParser(prog=basename(argv[0]))
+        prog = basename(argv[0])
+        parser = ArgumentParser(prog=prog,
+                                usage="%(prog)s [options] filename")
 
-        parser.set_usage("%prog [options] filename")
-        parser.add_option(
+        parser.add_argument(
+            "filename",
+            help="Input file name"
+        )
+        parser.add_argument(
             "-a", "--autobrief",
             action="store_true", dest="autobrief",
             help="parse the docstring for @brief description and other information"
         )
-        parser.add_option(
+        parser.add_argument(
             "-c", "--autocode",
             action="store_true", dest="autocode",
             help="parse the docstring for code samples"
         )
-        parser.add_option(
+        parser.add_argument(
             "-n", "--ns",
-            action="store", type="string", dest="topLevelNamespace",
+            action="store", type=str, dest="topLevelNamespace",
             help="specify a top-level namespace that will be used to trim paths"
         )
-        parser.add_option(
+        parser.add_argument(
             "-t", "--tablength",
-            action="store", type="int", dest="tablength", default=4,
+            action="store", type=int, dest="tablength", default=4,
             help="specify a tab length in spaces; only needed if tabs are used"
         )
-        parser.add_option(
+        parser.add_argument(
             "-s", "--stripinit",
             action="store_true", dest="stripinit",
             help="strip __init__ from namespace"
         )
-        parser.add_option(
+        parser.add_argument(
             "-O", "--object-respect",
             action="store_true", dest="object_respect",
-            help="By default, doxypypy hides object class from class dependencies even if class inherits explictilty from objects (new-style class), this option disable this."
+            help="By default, doxypypy hides object class from class dependencies"
+                 "even if class inherits explictilty from objects (new-style class),"
+                 "this option disable this."
         )
-        group = OptionGroup(parser, "Debug Options")
-        group.add_option(
+        group = parser.add_argument_group("Debug Options")
+        group.add_argument(
             "-d", "--debug",
             action="store_true", dest="debug",
             help="enable debug output on stderr"
         )
-        parser.add_option_group(group)
 
-        ## Parse options based on our definition.
-        (options, filename) = parser.parse_args()
+        # Parse options based on our definition.
+        args = parser.parse_args()
 
         # Just abort immediately if we are don't have an input file.
-        if not filename:
+        if not args.filename:
             stderr.write("No filename given." + linesep)
             sysExit(-1)
 
         # Turn the full path filename into a full path module location.
-        fullPathNamespace = filename[0].replace(sep, '.')[:-3]
+        fullPathNamespace = args.filename.replace(sep, '.')[:-3]
         # Use any provided top-level namespace argument to trim off excess.
         realNamespace = fullPathNamespace
-        if options.topLevelNamespace:
-            namespaceStart = fullPathNamespace.find(options.topLevelNamespace)
+        if args.topLevelNamespace:
+            namespaceStart = fullPathNamespace.find(args.topLevelNamespace)
             if namespaceStart >= 0:
                 realNamespace = fullPathNamespace[namespaceStart:]
-        if options.stripinit:
+        if args.stripinit:
             realNamespace = realNamespace.replace('.__init__', '')
-        options.fullPathNamespace = realNamespace
+        args.fullPathNamespace = realNamespace
 
-        return options, filename[0]
+        return args
 
     # Figure out what is being requested.
-    (options, inFilename) = optParse()
+    args = argParse()
 
     # Figure out encoding of input file.
-    numOfSampleBytes = min(getsize(inFilename), 32)
-    sampleBytes = open(inFilename, 'rb').read(numOfSampleBytes)
+    numOfSampleBytes = min(getsize(args.filename), 32)
+    sampleBytes = open(args.filename, 'rb').read(numOfSampleBytes)
     sampleByteAnalysis = detect(sampleBytes)
     encoding = sampleByteAnalysis['encoding'] or 'ascii'
 
@@ -880,13 +886,13 @@ def main():
 
     # Read contents of input file.
     if encoding == 'ascii':
-        inFile = open(inFilename)
+        inFile = open(args.filename)
     else:
-        inFile = codecsOpen(inFilename, encoding=encoding)
+        inFile = codecsOpen(args.filename, encoding=encoding)
     lines = inFile.readlines()
     inFile.close()
     # Create the abstract syntax tree for the input file.
-    astWalker = AstWalker(lines, options, inFilename)
+    astWalker = AstWalker(lines, args)
     astWalker.parseLines()
     # Output the modified source.
 
@@ -895,6 +901,7 @@ def main():
     # screws up Doxygen since it's expected 0x0D 0x0A line endings.
     for line in astWalker.getLines().split(linesep):
         print(line.rstrip())
+
 
 # See if we're running as a script.
 if __name__ == "__main__":
