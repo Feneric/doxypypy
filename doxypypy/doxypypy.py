@@ -16,7 +16,8 @@ doctests.
 from ast import NodeVisitor, parse, iter_fields, AST, Name, get_docstring
 from re import compile as regexpCompile, IGNORECASE, MULTILINE
 from types import GeneratorType
-from sys import stderr, stdout
+from sys import stderr
+from sys import stdout
 from os import linesep
 from string import whitespace
 from codeop import compile_command
@@ -58,7 +59,6 @@ class AstWalker(NodeVisitor):
                                    r"(?:module|class|directly)?"
                                    r"(?:Provides|Implements)\(\s*(.+)\s*\)",
                                    IGNORECASE)
-    __classRE = regexpCompile(r"^\s*class\s+(\S+)\s*\((\S+)\):")
     __interfaceRE = regexpCompile(r"^\s*class\s+(\S+)\s*\(\s*(?:zope\.)?"
                                   r"(?:interface\.)?"
                                   r"Interface\s*\)\s*:", IGNORECASE)
@@ -94,6 +94,19 @@ class AstWalker(NodeVisitor):
     # (due to a weird behavior of codeop) single word lines.
     __errorLineRE = regexpCompile(r"^\s*((?:\S+Error|Traceback.*):?\s*(.*)|@?[\w.]+)\s*$",
                                   IGNORECASE)
+      
+    # searching for reStructuredText field lists
+    #__rst_paramRE = regexpCompile(r"^\s*(?::param(eter)?|:arg(ument)?|:key(word)?)"
+    #                              r"\s*(\w*)\s*(\w*)\s*:(.*)") # search for :param, :parameter, :arg, :argument, :key, :keyword
+                                  # this searches for the keyword and the colons, but returns all in between as one group: 
+    __rst_paramRE = regexpCompile(r"^\s*(?::param(eter)?|:arg(ument)?|:key(word)?)([^:]*):\s*(.*)")
+    __rst_typeRE = regexpCompile(r"^\s*(?::type)"
+                                  r"\s*(\w*)\s*:(.*)")   # search for :type
+    __rst_rtypeRE = regexpCompile(r"^\s*(?::rtype)"
+                                  r"\s*(\w*)\s*:(.*)") # search for rtype
+    # work around for Python 3.8 from svigerske
+    def visit_Constant(self, node, **kwargs):
+        super().visit_Constant(node);                              
 
     def __init__(self, lines, options, inFilename):
         """Initialize a few class variables in preparation for our walk."""
@@ -118,7 +131,7 @@ class AstWalker(NodeVisitor):
         return line, inCodeBlock
 
     @coroutine
-    def _checkIfCode(self, inCodeBlockObj):
+    def _checkIfCode(self, inCodeBlock):
         """Checks whether or not a given line appears to be Python code."""
         while True:
             line, lines, lineNum = (yield)
@@ -133,7 +146,7 @@ class AstWalker(NodeVisitor):
                     line, lines, lineNum = (yield)
                     testLine = line.strip()
                     #testLineNum = 1
-                elif testLine.startswith('>>>'):
+                elif testLine.startswith('>>> '):
                     # This is definitely code.
                     lineOfCode = True
                 else:
@@ -144,7 +157,7 @@ class AstWalker(NodeVisitor):
                         else:
                             line, lines, lineNum = (yield)
                             line = line.strip()
-                            if line.startswith('>>>'):
+                            if line.startswith('>>> '):
                                 # Definitely code, don't compile further.
                                 lineOfCode = True
                             else:
@@ -160,16 +173,16 @@ class AstWalker(NodeVisitor):
                         testLine = line.strip()
                         #testLineNum = 1
                 currentLineNum = lineNum - testLineNum
-            if not inCodeBlockObj[0] and lineOfCode:
-                inCodeBlockObj[0] = True
+            if not inCodeBlock and lineOfCode:
+                inCodeBlock = True
                 lines[currentLineNum] = '{0}{1}# @code{1}'.format(
                     lines[currentLineNum],
                     linesep
                 )
-            elif inCodeBlockObj[0] and lineOfCode is False:
+            elif inCodeBlock and lineOfCode is False:
                 # None is ambiguous, so strict checking
                 # against False is necessary.
-                inCodeBlockObj[0] = False
+                inCodeBlock = False
                 lines[currentLineNum] = '{0}{1}# @endcode{1}'.format(
                     lines[currentLineNum],
                     linesep
@@ -188,12 +201,12 @@ class AstWalker(NodeVisitor):
         lines = []
         timeToSend = False
         inCodeBlock = False
-        inCodeBlockObj = [False]
         inSection = False
         prefix = ''
         firstLineNum = -1
         sectionHeadingIndent = 0
-        codeChecker = self._checkIfCode(inCodeBlockObj)
+        codeChecker = self._checkIfCode(False)
+        proseChecker = self._checkIfCode(True)
         while True:
             lineNum, line = (yield)
             if firstLineNum < 0:
@@ -208,7 +221,6 @@ class AstWalker(NodeVisitor):
                             # We've got a simple one-line Doxygen command
                             lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                 lines[-1], inCodeBlock)
-                            inCodeBlockObj[0] = inCodeBlock
                             writer.send((firstLineNum, lineNum - 1, lines))
                             lines = []
                             firstLineNum = lineNum
@@ -233,9 +245,6 @@ class AstWalker(NodeVisitor):
                     match = AstWalker.__returnsStartRE.match(line)
                     if match:
                         # We've got a "returns" section
-                        lines[-1], inCodeBlock = self._endCodeIfNeeded(
-                            lines[-1], inCodeBlock)
-                        inCodeBlockObj[0] = inCodeBlock
                         line = line.replace(match.group(0), ' @return\t').rstrip()
                         prefix = '@return\t'
                     else:
@@ -249,10 +258,32 @@ class AstWalker(NodeVisitor):
                                 prefix = '@param\t'
                             lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                 lines[-1], inCodeBlock)
-                            inCodeBlockObj[0] = inCodeBlock
                             lines.append('#' + line)
                             continue
                         else:
+                            
+                            match = AstWalker.__rst_paramRE.match(line)
+                            if match:
+                                # it's an rst param
+                                # last word is the param name
+                                param_declarations = match.group(4).rpartition(' ')
+                                line = f"{param_declarations[2]} {param_declarations[0]} {param_declarations[1]} {match.group(5)}"
+                                
+                                prefix = '@param\t'
+                                lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                    lines[-1], inCodeBlock)
+                                lines.append('#@param\t' + line)
+                                continue
+                            
+                            match = AstWalker.__rst_typeRE.match(line)
+                            if match:
+                                # it's a type description to a former param  
+                                line = f"@n type of {match.group(1)}: {match.group(2)}"
+                                lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                    lines[-1], inCodeBlock)
+                                lines.append('#' + line)
+                                continue
+                                
                             match = AstWalker.__argsRE.match(line)
                             if match and not inCodeBlock:
                                 # We've got something that looks like an item /
@@ -275,7 +306,6 @@ class AstWalker(NodeVisitor):
                                         prefix = '@exception\t'
                                     lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                         lines[-1], inCodeBlock)
-                                    inCodeBlockObj[0] = inCodeBlock
                                     lines.append('#' + line)
                                     continue
                                 else:
@@ -294,7 +324,6 @@ class AstWalker(NodeVisitor):
                                            and self.options.autocode:
                                             # We've got an "example" section
                                             inCodeBlock = True
-                                            inCodeBlockObj[0] = True
                                             line = line.replace(match.group(0),
                                                                 ' @b Examples{0}# @code'.format(linesep))
                                         else:
@@ -314,7 +343,6 @@ class AstWalker(NodeVisitor):
                                                     lines[-1] = '#'
                                                 lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                                     lines[-1], inCodeBlock)
-                                                inCodeBlockObj[0] = inCodeBlock
                                                 lines.append('#' + line)
                                                 continue
                                             elif prefix:
@@ -323,6 +351,13 @@ class AstWalker(NodeVisitor):
                                                     # Probably a single list item
                                                     line = ' {0}\t{1}'.format(
                                                         prefix, match.group(0))
+                                                elif self.options.autocode and inCodeBlock:
+                                                    proseChecker.send(
+                                                        (
+                                                            line, lines,
+                                                            lineNum - firstLineNum
+                                                        )
+                                                    )
                                                 elif self.options.autocode:
                                                     codeChecker.send(
                                                         (
@@ -330,16 +365,6 @@ class AstWalker(NodeVisitor):
                                                             lineNum - firstLineNum
                                                         )
                                                     )
-                                                    inCodeBlock = inCodeBlockObj[0]
-                                            else:
-                                                if self.options.autocode:
-                                                    codeChecker.send(
-                                                        (
-                                                            line, lines,
-                                                            lineNum - firstLineNum
-                                                        )
-                                                    )
-                                                    inCodeBlock = inCodeBlockObj[0]
 
                 # If we were passed a tail, append it to the docstring.
                 # Note that this means that we need a docstring for this
@@ -361,7 +386,6 @@ class AstWalker(NodeVisitor):
             if timeToSend:
                 lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1],
                                                                inCodeBlock)
-                inCodeBlockObj[0] = inCodeBlock
                 writer.send((firstLineNum, lineNum, lines))
                 lines = []
                 firstLineNum = -1
@@ -480,7 +504,7 @@ class AstWalker(NodeVisitor):
                     if '@property\t' in firstVarLine:
                         break
                 lastVarLineNum = len(self.docLines)
-                if lastVarLineNum > 0 and '@property\t' in firstVarLine:
+                if '@property\t' in firstVarLine:
                     while lastVarLineNum > firstVarLineNum:
                         lastVarLineNum -= 1
                         if '@property\t' in self.docLines[lastVarLineNum]:
@@ -598,20 +622,14 @@ class AstWalker(NodeVisitor):
         Process the module-level docstring and create appropriate Doxygen tags
         if autobrief option is set.
         """
-        containingNodes=kwargs.get('containingNodes', [])
         if self.options.debug:
             stderr.write("# Module {0}{1}".format(self.options.fullPathNamespace,
                                                   linesep))
         if get_docstring(node):
-            if self.options.topLevelNamespace:
-                fullPathNamespace = self._getFullPathName(containingNodes)
-                contextTag = '.'.join(pathTuple[0] for pathTuple in fullPathNamespace)
-                tail = '@namespace {0}'.format(contextTag)
-            else:
-                tail = ''
-            self._processDocstring(node, tail)
+            self._processDocstring(node)
         # Visit any contained nodes (in this case pretty much everything).
-        self.generic_visit(node, containingNodes=containingNodes)
+        self.generic_visit(node, containingNodes=kwargs.get('containingNodes',
+                                                            []))
 
     def visit_Assign(self, node, **kwargs):
         """
@@ -690,7 +708,7 @@ class AstWalker(NodeVisitor):
         # hierarchy so we can keep track of context.  This will let us tell
         # if a function is nested within another function or even if a class
         # is nested within a function.
-        containingNodes = kwargs.get('containingNodes') or []
+        containingNodes = kwargs.get('containingNodes', []) or []
         containingNodes.append((node.name, 'function'))
         if self.options.topLevelNamespace:
             fullPathNamespace = self._getFullPathName(containingNodes)
@@ -722,17 +740,7 @@ class AstWalker(NodeVisitor):
         # hierarchy so we can keep track of context.  This will let us tell
         # if a function is a method or an interface method definition or if
         # a class is fully contained within another class.
-        containingNodes = kwargs.get('containingNodes') or []
-
-        if not self.options.object_respect:
-            # Remove object class of the inherited class list to avoid that all
-            # new-style class inherits from object in the hierarchy class
-            line = self.lines[lineNum]
-            match = AstWalker.__classRE.match(line)
-            if match:
-                if match.group(2) == 'object':
-                    self.lines[lineNum] = line[:match.start(2)] + line[match.end(2):]
-
+        containingNodes = kwargs.get('containingNodes', []) or []
         match = AstWalker.__interfaceRE.match(self.lines[lineNum])
         if match:
             if self.options.debug:
@@ -783,10 +791,8 @@ def main():
     """
     from optparse import OptionParser, OptionGroup
     from os import sep
-    from os.path import basename, getsize
+    from os.path import basename
     from sys import argv, exit as sysExit
-    from chardet import detect
-    from codecs import BOM_UTF8, open as codecsOpen
 
     def optParse():
         """
@@ -821,16 +827,6 @@ def main():
             action="store", type="int", dest="tablength", default=4,
             help="specify a tab length in spaces; only needed if tabs are used"
         )
-        parser.add_option(
-            "-s", "--stripinit",
-            action="store_true", dest="stripinit",
-            help="strip __init__ from namespace"
-        )
-        parser.add_option(
-            "-O", "--object-respect",
-            action="store_true", dest="object_respect",
-            help="By default, doxypypy hides object class from class dependencies even if class inherits explictilty from objects (new-style class), this option disable this."
-        )
         group = OptionGroup(parser, "Debug Options")
         group.add_option(
             "-d", "--debug",
@@ -855,8 +851,6 @@ def main():
             namespaceStart = fullPathNamespace.find(options.topLevelNamespace)
             if namespaceStart >= 0:
                 realNamespace = fullPathNamespace[namespaceStart:]
-        if options.stripinit:
-            realNamespace = realNamespace.replace('.__init__', '')
         options.fullPathNamespace = realNamespace
 
         return options, filename[0]
@@ -864,37 +858,24 @@ def main():
     # Figure out what is being requested.
     (options, inFilename) = optParse()
 
-    # Figure out encoding of input file.
-    numOfSampleBytes = min(getsize(inFilename), 32)
-    sampleBytes = open(inFilename, 'rb').read(numOfSampleBytes)
-    sampleByteAnalysis = detect(sampleBytes)
-    encoding = sampleByteAnalysis['encoding'] or 'ascii'
-
-    # Switch to generic versions to strip the BOM automatically.
-    if sampleBytes.startswith(BOM_UTF8):
-        encoding = 'UTF-8-SIG'
-    if encoding.startswith("UTF-16"):
-        encoding = "UTF-16"
-    elif encoding.startswith("UTF-32"):
-        encoding = "UTF-32"
-
     # Read contents of input file.
-    if encoding == 'ascii':
-        inFile = open(inFilename)
-    else:
-        inFile = codecsOpen(inFilename, encoding=encoding)
+    inFile = open(inFilename)
     lines = inFile.readlines()
     inFile.close()
     # Create the abstract syntax tree for the input file.
     astWalker = AstWalker(lines, options, inFilename)
     astWalker.parseLines()
     # Output the modified source.
-
-    # There is a "feature" in print on Windows. If linesep is
-    # passed, it will generate 0x0D 0x0D 0x0A each line which
-    # screws up Doxygen since it's expected 0x0D 0x0A line endings.
-    for line in astWalker.getLines().split(linesep):
-        print(line.rstrip())
+    #Workaround for fixing line endings on windows
+    #stdout = open(sys.__stdout__.fileno(), 
+    #          mode=sys.__stdout__.mode, 
+    #          buffering=1, 
+    #          encoding=sys.__stdout__.encoding, 
+    #          errors=sys.__stdout__.errors, 
+    #          newline='', 
+    #          closefd=False)
+    #print(astWalker.getLines())
+    stdout.buffer.write(astWalker.getLines().encode('utf-8'))
 
 # See if we're running as a script.
 if __name__ == "__main__":
