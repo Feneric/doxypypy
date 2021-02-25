@@ -100,12 +100,12 @@ class AstWalker(NodeVisitor):
     #                              r"\s*(\w*)\s*(\w*)\s*:(.*)") # search for :param, :parameter, :arg, :argument, :key, :keyword
                                   # this searches for the keyword and the colons, but returns all in between as one group: 
     __rst_paramRE = regexpCompile(r"^\s*(?::param(eter)?|:arg(ument)?|:key(word)?)([^:]*):\s*(.*)")
-    __rst_typeRE = regexpCompile(r"^\s*(?::type)"
+    __rst_typeRE = regexpCompile(r"^(\s*)(?::type)"
                                   r"\s*(\w*)\s*:(.*)")   # search for :type
-    __rst_rtypeRE = regexpCompile(r"^\s*(?::rtype)"
-                                  r"\s*(\w*)\s*:(.*)") # search for rtype
+    __rst_rtypeRE = regexpCompile(r"^(\s*)(?::rtype)\s*(.*):(.*)") # search for rtype
     __rst_returnRE = regexpCompile(r"^\s*(?::return)\s*(.*): (.*)$")                              
     __rst_literal_sectionRE = regexpCompile(r"^(.*)::$")
+    __rst_tableRE = regexpCompile(r"^\s*=+\s+(=+\s*)+$") # end of table is a blank line    
     
     __LITERAL_SECTION_MARK = "~~~~~~"
     
@@ -211,6 +211,10 @@ class AstWalker(NodeVisitor):
         inCodeBlock = False
         inSection = False
         in_literal_section = False
+        in_rst_table = False
+        rst_table_start_line_number = -1
+        table_count = 0
+        rst_table_middle_column_positions = [] # first and last column are line dependent ...
         prefix = ''
         firstLineNum = -1
         sectionHeadingIndent = 0
@@ -269,7 +273,37 @@ class AstWalker(NodeVisitor):
                                 in_literal_section = False
                                 #line = line.rstrip() + "Le"
                                 #lines.append("#" + AstWalker.__LITERAL_SECTION_MARK) # fencing requires line addition -> which is not yet supported here
-                    
+                    elif in_rst_table:
+                        # end table on a blank line
+                        match = AstWalker.__blanklineRE.match(line)
+                        if match:
+                            in_rst_table = False
+                            lines.append ("#" + line)
+                            continue
+                        # check for intermediate border lines -> doxygen only knows them at second table line as separator line ...
+                        match = AstWalker.__rst_tableRE.match(line)
+                        if match:
+                            if rst_table_start_line_number + 2 == lineNum:
+                                line = line.replace("=","-")
+                            else:
+                                #line = line.replace("="," ") # white spaces will end the table ... so use
+                                # replace every starting = with - and all following with ' '
+                                line = line.replace (" =", " -")
+                                line = line.replace ("=", " ")
+                                
+                        # insert pipes before first text and behind last text ... well not always needed so skip it for now
+                        
+                        # insert pipes on all middle positions, check if there's a whitespace there
+                        for pos in rst_table_middle_column_positions:
+                            if line[pos] == ' ':
+                                line = line[:pos] + '|' + line[pos + 1:]
+                            #else:
+                                # well miss formated simple rst table
+                                # -> let the garbage flow ... until next blank line ...
+                                # Note: multiline rst table cells are not translateable to simple Markdown ...
+                        lines.append("#"+ line)
+                        continue # no further translation needed here
+                     
                     match = AstWalker.__returnsStartRE.match(line)
                     if match:
                         # We've got a "returns" section
@@ -306,7 +340,7 @@ class AstWalker(NodeVisitor):
                             match = AstWalker.__rst_typeRE.match(line)
                             if match:
                                 # it's a type description to a former param  
-                                line = f"@n type of {match.group(1)}: {match.group(2)}" #@n = newline
+                                line = f"{match.group(1)}@n type of {match.group(2)}: {match.group(3)}" #@n = newline
                                 lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                     lines[-1], inCodeBlock)
                                 lines.append('#' + line)
@@ -321,6 +355,33 @@ class AstWalker(NodeVisitor):
                                     lines[-1], inCodeBlock)
                                 lines.append('#' + line)
                                 continue # line is processed 
+                                                            
+                            match = AstWalker.__rst_rtypeRE.match(line)
+                            if match:
+                                # it's a return type description to a former return
+                                line = f"{match.group(1)}@n return type of {match.group(2)}: {match.group(3)}" #@n = newline
+                                lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                    lines[-1], inCodeBlock)
+                                lines.append('#' + line)
+                                continue # line is processed 
+                                
+                            match = AstWalker.__rst_tableRE.match(line)
+                            if match:
+                                # found a rst table start
+                                in_rst_table = True
+                                current_indent = len(line.expandtabs(self.options.tablength)) \
+                                              - len(line.expandtabs(self.options.tablength).lstrip())
+                                rst_table_start_line_number = lineNum
+                                #get the positions of middle columns
+                                rst_table_middle_column_positions = []
+                                pos = line.find("= ")
+                                while (pos != -1):
+                                    rst_table_middle_column_positions.append(pos + 1) # the space is after =
+                                    pos = line.find("= ",pos+1)
+                                #other code detectors need to be run here to get out of their mode but keep line indention for not triggering a literal section!
+                                table_count += 1
+                                line = " " * current_indent + f"Table {table_count}" # <text> number prevents singleListItem detection later                                
+                                
                             
                             match = AstWalker.__argsRE.match(line)
                             if match and not inCodeBlock:
@@ -389,7 +450,7 @@ class AstWalker(NodeVisitor):
                                                 match = AstWalker.__rst_literal_sectionRE.match(line)
                                                 if match:
                                                     # its a rst literal section start -> output the section Head as usal and switch to literal processing until indent is back to 
-                                                    print (f"Matched Literal at line:{lineNum} is in Codeblock?{inCodeBlock}")
+                                                    #print (f"Matched Literal at line:{lineNum} is in Codeblock?{inCodeBlock}")
                                                     #prefix = '' 
                                                     sectionHeadingIndent = len(line.expandtabs(self.options.tablength)) \
                                                     - len(line.expandtabs(self.options.tablength).lstrip())
@@ -407,7 +468,7 @@ class AstWalker(NodeVisitor):
                                                 # why is code checking prefix dependent? because it is only meant to be done there...
                                                 match = AstWalker.__singleListItemRE.match(line)
                                                 if match and not inCodeBlock:
-                                                    # Probably a single list item
+                                                    # Probably a single list item -> a single word in this line
                                                     line = ' {0}\t{1}'.format(
                                                         prefix, match.group(0))
                                                 elif self.options.autocode and inCodeBlock: 
@@ -451,6 +512,7 @@ class AstWalker(NodeVisitor):
                 writer.send((firstLineNum, lineNum, lines))
                 lines = []
                 firstLineNum = -1
+                table_count = 0
                 timeToSend = False
 
     @coroutine
