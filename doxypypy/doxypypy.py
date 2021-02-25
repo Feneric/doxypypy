@@ -624,6 +624,7 @@ class AstWalker(NodeVisitor):
             elif self.options.autobrief and typeName == 'ClassDef':
                 # If we're parsing docstrings separate out class attribute
                 # definitions to get better Doxygen output.
+                firstVarLine = ''
                 for firstVarLineNum, firstVarLine in enumerate(self.docLines):
                     if '@property\t' in firstVarLine:
                         break
