@@ -228,11 +228,12 @@ class AstWalker(NodeVisitor):
             if line is not None:
                 # Also limit work if we're not parsing the docstring.                
                 if self.options.autobrief:
+                    #print (line + str(inCodeBlock))
                     for doxyTag, tagRE in AstWalker.__singleLineREs.items():
                         match = tagRE.search(line)
                         if match:
                             # We've got a simple one-line Doxygen command
-                            lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                            if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                 lines[-1], inCodeBlock)
                             writer.send((firstLineNum, lineNum - 1, lines))
                             lines = []
@@ -318,7 +319,7 @@ class AstWalker(NodeVisitor):
                                 prefix = '@property\t'
                             else:
                                 prefix = '@param\t'
-                            lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                            if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                 lines[-1], inCodeBlock)
                             lines.append('#' + line)
                             continue # line is processed 
@@ -332,7 +333,8 @@ class AstWalker(NodeVisitor):
                                 line = f"{param_declarations[2]} {param_declarations[0]} {param_declarations[1]} {match.group(5)}"
                                 
                                 prefix = '@param\t'
-                                lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                print(f"lines: {lines}")
+                                if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                     lines[-1], inCodeBlock)
                                 lines.append('#@param\t' + line)
                                 continue # line is processed 
@@ -341,7 +343,7 @@ class AstWalker(NodeVisitor):
                             if match:
                                 # it's a type description to a former param  
                                 line = f"{match.group(1)}@n type of {match.group(2)}: {match.group(3)}" #@n = newline
-                                lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                     lines[-1], inCodeBlock)
                                 lines.append('#' + line)
                                 continue # line is processed 
@@ -351,7 +353,7 @@ class AstWalker(NodeVisitor):
                                 # it's a return description line
                                 prefix = "@return\t"
                                 line = f"@return {match.group(1)} {match.group(2)}"
-                                lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                     lines[-1], inCodeBlock)
                                 lines.append('#' + line)
                                 continue # line is processed 
@@ -360,7 +362,7 @@ class AstWalker(NodeVisitor):
                             if match:
                                 # it's a return type description to a former return
                                 line = f"{match.group(1)}@n return type of {match.group(2)}: {match.group(3)}" #@n = newline
-                                lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                     lines[-1], inCodeBlock)
                                 lines.append('#' + line)
                                 continue # line is processed 
@@ -403,7 +405,7 @@ class AstWalker(NodeVisitor):
                                     else:
                                         # We've got an "exceptions" section
                                         prefix = '@exception\t'
-                                    lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                    if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                         lines[-1], inCodeBlock)
                                     lines.append('#' + line)
                                     continue
@@ -441,7 +443,7 @@ class AstWalker(NodeVisitor):
                                                 )
                                                 if lines[-1] == '# @par':
                                                     lines[-1] = '#'
-                                                lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                                if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                                     lines[-1], inCodeBlock)
                                                 #lines.append('#' + line)
                                                 #continue
@@ -456,7 +458,7 @@ class AstWalker(NodeVisitor):
                                                     - len(line.expandtabs(self.options.tablength).lstrip())
                                                     in_literal_section = True
                                                     
-                                                    lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                                    if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                                         lines[-1], inCodeBlock)
                                                     #lines.append('#' + match[1] + ":")
                                                     line = match[1] + ":"
@@ -507,7 +509,7 @@ class AstWalker(NodeVisitor):
                 timeToSend = True
 
             if timeToSend:
-                lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1],
+                if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1],
                                                                inCodeBlock)
                 writer.send((firstLineNum, lineNum, lines))
                 lines = []
