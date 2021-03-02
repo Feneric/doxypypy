@@ -33,7 +33,7 @@ class TestDoxypypy(unittest.TestCase):
 
     __Options = namedtuple(
         'Options',
-        'autobrief autocode debug fullPathNamespace topLevelNamespace tablength'
+        'autobrief autocode debug fullPathNamespace topLevelNamespace tablength object_respect'
     )
     __dummySrc = [
         "print('testing: one, two, three, & four') " + linesep,
@@ -305,7 +305,7 @@ class TestDoxypypy(unittest.TestCase):
         Sets up a temporary AST for use with our unit tests.
         """
         self.options = TestDoxypypy.__Options(True, True, False,
-                                              'dummy', 'dummy', 4)
+                                              'dummy', 'dummy', 4, True)
         self.dummyWalker = AstWalker(TestDoxypypy.__dummySrc,
                                      self.options, 'dummy.py')
 
@@ -508,6 +508,7 @@ class TestDoxypypy(unittest.TestCase):
                                    self.options, snippetTest['name'] + '.py')
             funcAst = parse(snippetTest['inputCode'])
             getattr(testWalker, snippetTest['visitor'])(funcAst.body[0])
+            print(testWalker.lines)
             self.assertEqual(testWalker.lines, snippetTest['expectedOutput'])
 
     def test_sampleBasics(self):
@@ -566,10 +567,10 @@ class TestDoxypypy(unittest.TestCase):
         inFilenameBase = splitext(basename(inFilename))[0]
         fullPathNamespace = inFilenameBase.replace(sep, '.')
         trials = (
-            ('.out', (True, True, False, fullPathNamespace, inFilenameBase, 4)),
-            ('.outnc', (True, False, False, fullPathNamespace, inFilenameBase, 4)),
-            ('.outnn', (True, True, False, fullPathNamespace, None, 4)),
-            ('.outbare', (False, False, False, fullPathNamespace, None, 4))
+            ('.out', (True, True, False, fullPathNamespace, inFilenameBase, 4, True)),
+            ('.outnc', (True, False, False, fullPathNamespace, inFilenameBase, 4, True)),
+            ('.outnn', (True, True, False, fullPathNamespace, None, 4, True)),
+            ('.outbare', (False, False, False, fullPathNamespace, None, 4, True))
         )
         for options in trials:
             output = self.readAndParseFile(inFilename,
@@ -679,5 +680,9 @@ class TestDoxypypy(unittest.TestCase):
 
 if __name__ == '__main__':
     # When executed from the command line, run all the tests via unittest.
+    # e.g. from root of this repository: (this makes relative module import resolving easier ...)
+    #   python -m unittest doxypypy.test.test_doxypypy
+    #   python -m unittest doxypypy.test.test_doxypypy.TestDoxypypy.test_sampleArgs -v --locals
+    # 
     from unittest import main
     main()
