@@ -654,7 +654,7 @@ class AstWalker(NodeVisitor):
                         self.docLines[firstVarLineNum: lastVarLineNum] = []
                         # After the property shuffling we will need to relocate
                         # any existing namespace information.
-                        namespaceLoc = defLines[-1].find('\n# @namespace')
+                        namespaceLoc = defLines[-1].find(linesep+'# @namespace')
                         if namespaceLoc >= 0:
                             self.docLines[-1] += defLines[-1][namespaceLoc:]
                             defLines[-1] = defLines[-1][:namespaceLoc]
@@ -926,6 +926,8 @@ class AstWalker(NodeVisitor):
 
     def getLines(self):
         """Return the modified file once processing has been completed."""
+        # Note: some processing steps insert new lines within one lines.line ...
+        # so actually all lineseps need to be replaced within one line, even in the middle of a line ...
         return linesep.join(line.rstrip() for line in self.lines)
 
 
