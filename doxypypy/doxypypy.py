@@ -480,10 +480,12 @@ class AstWalker(NodeVisitor):
                                             if prefix and not inCodeBlock:
                                                 # why is code checking prefix dependent? because it is only meant to be done there...
                                                 match = AstWalker.__singleListItemRE.match(line)
-                                                if match:
-                                                    # Probably a single list item -> a single word in this line
-                                                    line = ' {0}\t{1}'.format(
-                                                        prefix, match.group(0))
+                                            else:
+                                                match = None
+                                            if match:
+                                                # Probably a single list item -> a single word in this line
+                                                line = ' {0}\t{1}'.format(
+                                                    prefix, match.group(0))
                                             elif self.options.autocode: 
                                                 # following Checkers are own code detect state machines ...
                                                 codeChecker.send(
