@@ -626,7 +626,8 @@ class AstWalker(NodeVisitor):
             parentType = fullPathNamespace[-2][1]
             if parentType == 'interface' and typeName == 'FunctionDef' \
                or fullPathNamespace[-1][1] == 'interface':
-                defLines[-1] = '{0}{1}{2}pass'.format(defLines[-1],
+                # defLines should always end with some kind of new line -> insert two os correct ones
+                defLines[-1] = '{0}{1}{1}{2}pass'.format(defLines[-1].rstrip(),
                                                       linesep, indentStr)
             elif self.options.autobrief and typeName == 'ClassDef':
                 # If we're parsing docstrings separate out class attribute
