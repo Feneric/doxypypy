@@ -442,7 +442,7 @@ class AstWalker(NodeVisitor):
                                             match = AstWalker.__sectionStartRE.match(line)
                                             if match:
                                                 # We've got an arbitrary section
-                                                #prefix = ''
+                                                prefix = ''
                                                 inSection = True
                                                 # What's the indentation of the section heading?
                                                 sectionHeadingIndent = len(line.expandtabs(self.options.tablength)) \
