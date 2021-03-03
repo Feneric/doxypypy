@@ -542,6 +542,8 @@ class AstWalker(NodeVisitor):
 
         Basically just figures out the bounds of the docstring and sends it
         off to the parser to do the actual work.
+        
+        Return: last line number of this docstring
         """
         typeName = type(node).__name__
         # Modules don't have lineno defined, but it's always 0 for them.
@@ -664,8 +666,10 @@ class AstWalker(NodeVisitor):
         # apply our changes.
         if typeName != 'Module':
             self.lines[startLineNum: endLineNum] = self.docLines + defLines
+            print(defLines)
         else:
             self.lines[startLineNum: endLineNum] = defLines + self.docLines
+        return endLineNum
 
     @staticmethod
     def _checkMemberName(name):
@@ -765,7 +769,19 @@ class AstWalker(NodeVisitor):
             self._processDocstring(node, tail)
         # Visit any contained nodes (in this case pretty much everything).
         self.generic_visit(node, containingNodes=containingNodes)
-
+    
+    def _shift_decorators_below_docstring (self, node, last_doc_line_number):
+        if node.decorator_list:
+            # get the decorators of this function and put them after DocString -> needs doxygen 1.9 or higher
+            # as decoradtors must be in line before function name restructuring should be possible
+            #print (str(node.decorator_list) + str(node.decorator_list[0].id) + str(node.decorator_list[0].lineno))
+            for decorator in node.decorator_list:
+                # first in list is last decorator called ... -> thus first line with decorator
+                org_line_number = decorator.lineno - 1
+                new_line_number = last_doc_line_number - 1
+                self.lines[org_line_number:new_line_number] = self.lines[org_line_number + 1 :new_line_number] + [self.lines[org_line_number]]
+                pass
+    
     def visit_Assign(self, node, **kwargs):
         """
         Handles assignments within code.
@@ -853,8 +869,10 @@ class AstWalker(NodeVisitor):
         else:
             tail = self._processMembers(node, '')
         if get_docstring(node):
-            self._processDocstring(node, tail,
+            last_doc_line_number = self._processDocstring(node, tail,
                                    containingNodes=containingNodes)
+            self._shift_decorators_below_docstring(node, last_doc_line_number)
+                
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=containingNodes)
         # Remove the item we pushed onto the containing nodes hierarchy.
@@ -911,8 +929,9 @@ class AstWalker(NodeVisitor):
             contextTag = tail
         contextTag = self._processMembers(node, contextTag)
         if get_docstring(node):
-            self._processDocstring(node, contextTag,
+            last_doc_line_number = self._processDocstring(node, contextTag,
                                    containingNodes=containingNodes)
+            self._shift_decorators_below_docstring(node, last_doc_line_number)
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=containingNodes)
         # Remove the item we pushed onto the containing nodes hierarchy.
