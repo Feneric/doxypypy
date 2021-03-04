@@ -95,24 +95,24 @@ class AstWalker(NodeVisitor):
     # (due to a weird behavior of codeop) single word lines.
     __errorLineRE = regexpCompile(r"^\s*((?:\S+Error|Traceback.*):?\s*(.*)|@?[\w.]+)\s*$",
                                   IGNORECASE)
-      
+
     # searching for reStructuredText field lists
     #__rst_paramRE = regexpCompile(r"^\s*(?::param(eter)?|:arg(ument)?|:key(word)?)"
     #                              r"\s*(\w*)\s*(\w*)\s*:(.*)") # search for :param, :parameter, :arg, :argument, :key, :keyword
-                                  # this searches for the keyword and the colons, but returns all in between as one group: 
+                                  # this searches for the keyword and the colons, but returns all in between as one group:
     __rst_paramRE = regexpCompile(r"^\s*(?::param(eter)?|:arg(ument)?|:key(word)?)([^:]*):\s*(.*)")
     __rst_typeRE = regexpCompile(r"^(\s*)(?::type)"
                                   r"\s*(\w*)\s*:(.*)")   # search for :type
     __rst_rtypeRE = regexpCompile(r"^(\s*)(?::rtype)\s*(.*):(.*)") # search for rtype
-    __rst_returnRE = regexpCompile(r"^\s*(?::return)\s*(.*): (.*)$")                              
+    __rst_returnRE = regexpCompile(r"^\s*(?::return)\s*(.*): (.*)$")
     __rst_literal_sectionRE = regexpCompile(r"^(.*)::$")
-    __rst_tableRE = regexpCompile(r"^\s*=+\s+(=+\s*)+$") # end of table is a blank line    
-    
+    __rst_tableRE = regexpCompile(r"^\s*=+\s+(=+\s*)+$") # end of table is a blank line
+
     __LITERAL_SECTION_MARK = "~~~~~~"
-    
+
     # work around for Python 3.8 from svigerske
     def visit_Constant(self, node, **kwargs):
-        super().visit_Constant(node);                              
+        super().visit_Constant(node);
 
     def __init__(self, lines, options, inFilename):
         """Initialize a few class variables in preparation for our walk."""
@@ -184,15 +184,15 @@ class AstWalker(NodeVisitor):
                         #testLineNum = 1
                 currentLineNum = lineNum - testLineNum
             if not inCodeBlockObj[0] and lineOfCode:
-                inCodeBlockObj[0] = True                        
+                inCodeBlockObj[0] = True
                 lines[currentLineNum] = '{0}{1}# @code{1}'.format(
                     lines[currentLineNum],
                     linesep
                 )
             elif inCodeBlockObj[0] and lineOfCode is False:
                 # None is ambiguous, so strict checking
-                # against False is necessary.                
-                inCodeBlockObj[0] = False                         
+                # against False is necessary.
+                inCodeBlockObj[0] = False
                 lines[currentLineNum] = '{0}{1}# @endcode{1}'.format(
                     lines[currentLineNum],
                     linesep
@@ -229,7 +229,7 @@ class AstWalker(NodeVisitor):
                 firstLineNum = lineNum
             # Don't bother doing extra work if it's a sentinel.
             if line is not None:
-                # Also limit work if we're not parsing the docstring.                
+                # Also limit work if we're not parsing the docstring.
                 if self.options.autobrief:
                     #print (line + str(inCodeBlock))
                     for doxyTag, tagRE in AstWalker.__singleLineREs.items():
@@ -238,7 +238,7 @@ class AstWalker(NodeVisitor):
                             # We've got a simple one-line Doxygen command
                             if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                 lines[-1], inCodeBlock)
-                            inCodeBlockObj[0] = inCodeBlock                               
+                            inCodeBlockObj[0] = inCodeBlock
                             writer.send((firstLineNum, lineNum - 1, lines))
                             lines = []
                             firstLineNum = lineNum
@@ -265,7 +265,7 @@ class AstWalker(NodeVisitor):
                         if not match:
                             # evaluate only non blank lines
                             current_indent = len(line.expandtabs(self.options.tablength)) \
-                                              - len(line.expandtabs(self.options.tablength).lstrip())                            
+                                              - len(line.expandtabs(self.options.tablength).lstrip())
                             if current_indent > sectionHeadingIndent:
                                 # just use it unchanged, but ensure it is at least 4 spaces indented
                                 if (current_indent - sectionHeadingIndent) < 4:
@@ -295,9 +295,9 @@ class AstWalker(NodeVisitor):
                                 # replace every starting = with - and all following with ' '
                                 line = line.replace (" =", " -")
                                 line = line.replace ("=", " ")
-                                
+
                         # insert pipes before first text and behind last text ... well not always needed so skip it for now
-                        
+
                         # insert pipes on all middle positions, check if there's a whitespace there
                         for pos in rst_table_middle_column_positions:
                             if line[pos] == ' ':
@@ -308,13 +308,13 @@ class AstWalker(NodeVisitor):
                                 # Note: multiline rst table cells are not translateable to simple Markdown ...
                         lines.append("#"+ line)
                         continue # no further translation needed here
-                     
+
                     match = AstWalker.__returnsStartRE.match(line)
                     if match:
                         # We've got a "returns" section
                         lines[-1], inCodeBlock = self._endCodeIfNeeded(
                             lines[-1], inCodeBlock)
-                        inCodeBlockObj[0] = inCodeBlock                                                                                                                                                         
+                        inCodeBlockObj[0] = inCodeBlock
                         line = line.replace(match.group(0), ' @return\t').rstrip()
                         prefix = '@return\t'
                     else:
@@ -330,32 +330,31 @@ class AstWalker(NodeVisitor):
                                 lines[-1], inCodeBlock)
                             inCodeBlockObj[0] = inCodeBlock
                             lines.append('#' + line)
-                            continue # line is processed 
+                            continue # line is processed
                         else:
-                            
+
                             match = AstWalker.__rst_paramRE.match(line)
                             if match:
                                 # it's an rst param
                                 # last word is the param name
                                 param_declarations = match.group(4).rpartition(' ')
                                 line = f"{param_declarations[2]} {param_declarations[0]} {param_declarations[1]} {match.group(5)}"
-                                
+
                                 prefix = '@param\t'
-                                print(f"lines: {lines}")
                                 if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                     lines[-1], inCodeBlock)
                                 lines.append('#@param\t' + line)
-                                continue # line is processed 
-                            
+                                continue # line is processed
+
                             match = AstWalker.__rst_typeRE.match(line)
                             if match:
-                                # it's a type description to a former param  
+                                # it's a type description to a former param
                                 line = f"{match.group(1)}@n type of {match.group(2)}: {match.group(3)}" #@n = newline
                                 if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                     lines[-1], inCodeBlock)
                                 lines.append('#' + line)
-                                continue # line is processed 
-                            
+                                continue # line is processed
+
                             match = AstWalker.__rst_returnRE.match(line)
                             if match:
                                 # it's a return description line
@@ -364,8 +363,8 @@ class AstWalker(NodeVisitor):
                                 if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                     lines[-1], inCodeBlock)
                                 lines.append('#' + line)
-                                continue # line is processed 
-                                                            
+                                continue # line is processed
+
                             match = AstWalker.__rst_rtypeRE.match(line)
                             if match:
                                 # it's a return type description to a former return
@@ -373,8 +372,8 @@ class AstWalker(NodeVisitor):
                                 if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                     lines[-1], inCodeBlock)
                                 lines.append('#' + line)
-                                continue # line is processed 
-                                
+                                continue # line is processed
+
                             match = AstWalker.__rst_tableRE.match(line)
                             if match:
                                 # found a rst table start
@@ -390,9 +389,9 @@ class AstWalker(NodeVisitor):
                                     pos = line.find("= ",pos+1)
                                 #other code detectors need to be run here to get out of their mode but keep line indention for not triggering a literal section!
                                 table_count += 1
-                                line = " " * current_indent + f"Table {table_count}" # <text> number prevents singleListItem detection later                                
-                                
-                            
+                                line = " " * current_indent + f"Table {table_count}" # <text> number prevents singleListItem detection later
+
+
                             match = AstWalker.__argsRE.match(line)
                             if match and not inCodeBlock:
                                 # We've got something that looks like an item /
@@ -459,16 +458,15 @@ class AstWalker(NodeVisitor):
                                                 #lines.append('#' + line)
                                                 #continue
                                             else:
-                                                #print ("LiteralCheck: " + line)
                                                 match = AstWalker.__rst_literal_sectionRE.match(line)
                                                 if match:
-                                                    # its a rst literal section start -> output the section Head as usal and switch to literal processing until indent is back to 
+                                                    # its a rst literal section start -> output the section Head as usal and switch to literal processing until indent is back to
                                                     #print (f"Matched Literal at line:{lineNum} is in Codeblock?{inCodeBlock}")
-                                                    #prefix = '' 
+                                                    #prefix = ''
                                                     sectionHeadingIndent = len(line.expandtabs(self.options.tablength)) \
                                                     - len(line.expandtabs(self.options.tablength).lstrip())
                                                     in_literal_section = True
-                                                    
+
                                                     if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(
                                                         lines[-1], inCodeBlock)
                                                     #lines.append('#' + match[1] + ":")
@@ -476,7 +474,7 @@ class AstWalker(NodeVisitor):
                                                     #lines.append('#' + AstWalker.__LITERAL_SECTION_MARK) -> ensure the indention level ...
                                                     #lineNum += 10 # here was one line more inserted then original docstring has ... that's bad as lineNum is only the current line number and shouldn't be changed ...
                                                     # fall through for code processing, too
-                                            
+
                                             if prefix and not inCodeBlock:
                                                 # why is code checking prefix dependent? because it is only meant to be done there...
                                                 match = AstWalker.__singleListItemRE.match(line)
@@ -486,7 +484,7 @@ class AstWalker(NodeVisitor):
                                                 # Probably a single list item -> a single word in this line
                                                 line = ' {0}\t{1}'.format(
                                                     prefix, match.group(0))
-                                            elif self.options.autocode: 
+                                            elif self.options.autocode:
                                                 # following Checkers are own code detect state machines ...
                                                 codeChecker.send(
                                                     (
@@ -494,7 +492,7 @@ class AstWalker(NodeVisitor):
                                                         lineNum - firstLineNum
                                                     )
                                                 )
-                                                inCodeBlock = inCodeBlockObj[0]                                                    
+                                                inCodeBlock = inCodeBlockObj[0]
                 # If we were passed a tail, append it to the docstring.
                 # Note that this means that we need a docstring for this
                 # item to get documented.
@@ -515,7 +513,7 @@ class AstWalker(NodeVisitor):
             if timeToSend:
                 if len(lines) > 0: lines[-1], inCodeBlock = self._endCodeIfNeeded(lines[-1],
                                                                inCodeBlock)
-                inCodeBlockObj[0] = inCodeBlock                               
+                inCodeBlockObj[0] = inCodeBlock
                 writer.send((firstLineNum, lineNum, lines))
                 lines = []
                 firstLineNum = -1
@@ -544,7 +542,7 @@ class AstWalker(NodeVisitor):
 
         Basically just figures out the bounds of the docstring and sends it
         off to the parser to do the actual work.
-        
+
         Return: last line number of this docstring
         """
         typeName = type(node).__name__
@@ -669,7 +667,6 @@ class AstWalker(NodeVisitor):
         # apply our changes.
         if typeName != 'Module':
             self.lines[startLineNum: endLineNum] = self.docLines + defLines
-            print(defLines)
         else:
             self.lines[startLineNum: endLineNum] = defLines + self.docLines
         return endLineNum
@@ -772,7 +769,7 @@ class AstWalker(NodeVisitor):
             self._processDocstring(node, tail)
         # Visit any contained nodes (in this case pretty much everything).
         self.generic_visit(node, containingNodes=containingNodes)
-    
+
     def _shift_decorators_below_docstring (self, node, last_doc_line_number):
         if node.decorator_list:
             # get the decorators of this function and put them after DocString -> needs doxygen 1.9 or higher
@@ -784,7 +781,7 @@ class AstWalker(NodeVisitor):
                 new_line_number = last_doc_line_number - 1
                 self.lines[org_line_number:new_line_number] = self.lines[org_line_number + 1 :new_line_number] + [self.lines[org_line_number]]
                 pass
-    
+
     def visit_Assign(self, node, **kwargs):
         """
         Handles assignments within code.
@@ -875,7 +872,7 @@ class AstWalker(NodeVisitor):
             last_doc_line_number = self._processDocstring(node, tail,
                                    containingNodes=containingNodes)
             self._shift_decorators_below_docstring(node, last_doc_line_number)
-                
+
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=containingNodes)
         # Remove the item we pushed onto the containing nodes hierarchy.
@@ -906,7 +903,7 @@ class AstWalker(NodeVisitor):
             if match:
                 if match.group(2) == 'object':
                     self.lines[lineNum] = line[:match.start(2)] + line[match.end(2):]
-   
+
         match = AstWalker.__interfaceRE.match(self.lines[lineNum])
         if match:
             if self.options.debug:

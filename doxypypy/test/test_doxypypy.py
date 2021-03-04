@@ -299,6 +299,15 @@ class TestDoxypypy(unittest.TestCase):
             ]
         }
     ]
+    __linesep_for_source = '''
+'''
+    """
+    detect the line ending within test string constants above
+
+     -> as git can check out \n on windows too
+     it's git configuration dependent if these line endings are OS specific
+     or just \n.
+    """
 
     def setUp(self):
         """
@@ -504,11 +513,11 @@ class TestDoxypypy(unittest.TestCase):
         Compare docstring parsing for a list of code snippets.
         """
         for snippetTest in sampleSnippets:
-            testWalker = AstWalker(snippetTest['inputCode'].split(linesep),
+            testWalker = AstWalker(snippetTest['inputCode'].split(self.__linesep_for_source),
                                    self.options, snippetTest['name'] + '.py')
             funcAst = parse(snippetTest['inputCode'])
             getattr(testWalker, snippetTest['visitor'])(funcAst.body[0])
-            print(testWalker.lines)
+            testWalker.lines[:] = [line.replace(linesep, self.__linesep_for_source)  for line in testWalker.lines]
             self.assertEqual(testWalker.lines, snippetTest['expectedOutput'])
 
     def test_sampleBasics(self):
@@ -583,7 +592,8 @@ class TestDoxypypy(unittest.TestCase):
             # We have to go through some extra processing to ensure line endings
             # match across platforms.
             goldContent = linesep.join(line.rstrip()
-                                       for line in goldContentLines)
+                                       for line in goldContentLines)            
+            self.maxDiff=None
             self.assertEqual(output.rstrip(linesep), goldContent.rstrip(linesep))
 
     def test_pepProcessing(self):
@@ -677,6 +687,13 @@ class TestDoxypypy(unittest.TestCase):
         """
         sampleName = 'doxypypy/test/sample_utf32lebom.py'
         self.compareAgainstGoldStandard(sampleName, encoding="UTF-32")
+     
+    def test_rstProcessing(self):
+        """
+        Test the examples in the Google Python Style Guide.
+        """
+        sampleName = 'doxypypy/test/sample_rstexample.py'
+        self.compareAgainstGoldStandard(sampleName)
 
 if __name__ == '__main__':
     # When executed from the command line, run all the tests via unittest.
