@@ -765,6 +765,13 @@ class AstWalker(NodeVisitor):
         # Remove the item we pushed onto the containing nodes hierarchy.
         containingNodes.pop()
 
+    # With Python 3.8, a function visit_Constant() was added to ast.NodeVisitor
+    # This adds an overload of this function that can take additional arguments,
+    # but ignores them and calls the function from NodeVisitor.
+    # See also https://github.com/Feneric/doxypypy/issues/70
+    def visit_Constant(self, node, **kwargs):
+        super().visit_Constant(node);
+
     def parseLines(self):
         """Form an AST for the code and produce a new version of the source."""
         inAst = parse(''.join(self.lines), self.args.filename)
