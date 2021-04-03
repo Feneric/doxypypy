@@ -15,7 +15,8 @@ doctests.
 from __future__ import print_function
 
 from ast import NodeVisitor, parse, iter_fields, AST, Name, get_docstring
-from re import compile as regexpCompile, IGNORECASE, MULTILINE
+from re import compile as regexpCompile,\
+               match as regexpMatch, IGNORECASE, MULTILINE
 from types import GeneratorType
 from sys import stderr
 from os import linesep
@@ -82,6 +83,7 @@ class AstWalker(NodeVisitor):
                                   r"\s*:\s*)$", IGNORECASE)
     __argsRE = regexpCompile(r"^\s*(?P<name>\w+)\s*(?P<type>\(?\S*\)?)?\s*"
                              r"(?:-|:)+\s+(?P<desc>.+)$")
+    __argparamRE = regexpCompile(r"^#\s+@(param|property)\s+(\w+)\s+(.+)$", IGNORECASE)
     __returnsStartRE = regexpCompile(r"^\s*(?:Return|Yield)s:\s*$", IGNORECASE)
     __raisesStartRE = regexpCompile(r"^\s*(Raises|Exceptions|See Also):\s*$",
                                     IGNORECASE)
@@ -187,6 +189,8 @@ class AstWalker(NodeVisitor):
 
         lines = []
         timeToSend = False
+        inArgBlock = False
+        inParBlock = False
         inCodeBlock = False
         inCodeBlockObj = [False]
         inSection = False
@@ -215,6 +219,47 @@ class AstWalker(NodeVisitor):
                             line = line.replace(match.group(1), doxyTag)
                             timeToSend = True
 
+
+                    if inArgBlock:
+                        line = line.rstrip()
+                        match = AstWalker.__blanklineRE.match(line)
+                        if match:
+                            indent = theArgIndent+self.options.tablength
+                        else:
+                            indent = len(line.expandtabs(self.options.tablength)) - \
+                                len(line.expandtabs(self.options.tablength).lstrip())
+                        if indent <= theArgIndent:
+                            if inCodeBlock:
+                                lines[-1] += "{0}# @endcode".format(linesep)
+                                inCodeBlock = False
+                            inArgBlock = False
+                            if inParBlock or prefix.startswith("@prop"):
+                                lines[-1] += "{0}# @endparblock".format(linesep)
+                            inParBlock = False
+                            theArgIndent = 0
+                        elif indent == theArgIndent+self.options.tablength:
+                            if inCodeBlock:
+                                lines[-1] += "{0}# @endcode".format(linesep)
+                                inCodeBlock = False
+                            if prefix.startswith("@param"):
+                                firstLine = AstWalker.__argparamRE.match(lines[-1])
+                                if firstLine:
+                                    lines[-1] = "# @{0}\t{1}".format(firstLine.group(1), firstLine.group(2), linesep)
+
+                                    lines[-1] += "{0}# @parblock".format(linesep)
+                                    lines[-1] += "{1}# {0}".format(firstLine.group(3), linesep)
+                                    inParBlock = True
+                            elif prefix.startswith("@prop") and lines[-1].startswith("## @prop"):
+                                inParBlock = True
+                            lines.append("# {0}".format(line[theArgIndent+self.options.tablength:]))
+                            continue
+                        else:
+                            if not inCodeBlock:
+                                lines[-1] += "{0}# @code".format(linesep)
+                                inCodeBlock = True
+                            lines.append("# {0}".format(line[theArgIndent+self.options.tablength:]))
+                            continue
+
                     if inSection:
                         # The last line belonged to a section.
                         # Does this one too? (Ignoring empty lines.)
@@ -237,6 +282,9 @@ class AstWalker(NodeVisitor):
                             lines[-1], inCodeBlock)
                         inCodeBlockObj[0] = inCodeBlock
                         line = line.replace(match.group(0), ' @return\t').rstrip()
+                        line += " @parblock".format(linesep)
+                        inParBlock = True
+                        inSection = True
                         prefix = '@return\t'
                     else:
                         match = AstWalker.__argsStartRE.match(line)
@@ -257,6 +305,9 @@ class AstWalker(NodeVisitor):
                             if match and not inCodeBlock:
                                 # We've got something that looks like an item /
                                 # description pair.
+                                inArgBlock = True
+                                theArgIndent = len(line.expandtabs(self.options.tablength)) - \
+                                        len(line.expandtabs(self.options.tablength).lstrip())
                                 if 'property' in prefix:
                                     line = '# {0}\t{1[name]}{2}# {1[desc]}'.format(
                                         prefix, match.groupdict(), linesep)
@@ -355,6 +406,24 @@ class AstWalker(NodeVisitor):
 
                 lines.append(line.replace(' ' + linesep, linesep))
             else:
+                if lines[-1].strip() == "#":
+                    lines[-1] = ""
+
+                if inArgBlock:
+                    if inCodeBlock:
+                        lines[-1] = lines[-1] + "{0}# @endcode".format(linesep)\
+                            if len(lines[-1]) > 0\
+                            else "# @endcode".format(linesep)
+                        inCodeBlock = False
+                    inArgBlock = False
+                    theArgIndent = 0
+                if inParBlock:
+                    lines[-1] = lines[-1] + "{0}# @endparblock".format(linesep)\
+                        if len(lines[-1]) > 0\
+                        else "# @endparblock".format(linesep)
+                inParBlock = False
+                
+
                 # If we get our sentinel value, send out what we've got.
                 timeToSend = True
 
@@ -477,15 +546,20 @@ class AstWalker(NodeVisitor):
                 # If we're parsing docstrings separate out class attribute
                 # definitions to get better Doxygen output.
                 for firstVarLineNum, firstVarLine in enumerate(self.docLines):
-                    if '@property\t' in firstVarLine:
+                    if '@property' in firstVarLine:
                         break
                 lastVarLineNum = len(self.docLines)
-                if lastVarLineNum > 0 and '@property\t' in firstVarLine:
+                if lastVarLineNum > 0:
                     while lastVarLineNum > firstVarLineNum:
                         lastVarLineNum -= 1
-                        if '@property\t' in self.docLines[lastVarLineNum]:
+                        if '@property' in self.docLines[lastVarLineNum]:
                             break
+                    while lastVarLineNum < len(self.docLines):
+                        if "@endparblock" in self.docLines[lastVarLineNum]:
+                            break
+                        lastVarLineNum += 1
                     lastVarLineNum += 1
+
                     if firstVarLineNum < len(self.docLines):
                         indentLineNum = endLineNum
                         indentStr = ''
@@ -493,10 +567,13 @@ class AstWalker(NodeVisitor):
                             match = AstWalker.__indentRE.match(self.lines[indentLineNum])
                             indentStr = match and match.group(1) or ''
                             indentLineNum += 1
-                        varLines = ['{0}{1}'.format(linesep, docLine).replace(
-                                    linesep, linesep + indentStr)
-                                    for docLine in self.docLines[
-                                        firstVarLineNum: lastVarLineNum]]
+
+                        varLines = ['{0}{1}'.format(indentStr, docLine).replace(linesep, linesep+indentStr)
+                                    for docLine in self.docLines[firstVarLineNum: lastVarLineNum]
+                                   ]
+                        for ln,line in enumerate(varLines):
+                            if "@endparblock" in line:
+                                varLines[ln] = varLines[ln].replace("# @endparblock", "")
                         defLines.extend(varLines)
                         self.docLines[firstVarLineNum: lastVarLineNum] = []
                         # After the property shuffling we will need to relocate
@@ -792,7 +869,10 @@ class AstWalker(NodeVisitor):
 
     def getLines(self):
         """Return the modified file once processing has been completed."""
-        return linesep.join(line.rstrip() for line in self.lines)
+        return linesep.join(((line[:-1] if line[-1] == linesep else line)\
+                    if regexpMatch("^\s*#", line)\
+                    else line.rstrip())\
+                for line in self.lines)
 
 
 def main():
