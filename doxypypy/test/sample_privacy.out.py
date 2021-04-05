@@ -26,7 +26,8 @@ _protectedModuleAttr = 3
 #
 # @namespace sample_privacy.NewStyleSample
 
-class NewStyleSample(object):
+class NewStyleSample():
+
     __notPrivateClassAttr__ = 1
     ## @var __privateClassAttr
     # @hideinitializer
@@ -122,11 +123,11 @@ class NewStyleSample(object):
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
 
+    @staticmethod
     ## @brief         This static method will be public.
     #
     # @namespace sample_privacy.NewStyleSample.publicClassStaticMethod
 
-    @staticmethod
     def publicClassStaticMethod():
         __notPrivateAttr__ = 1
         ## @var __privateAttr
@@ -139,11 +140,11 @@ class NewStyleSample(object):
         _protectedAttr = 3
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
+    @classmethod
     ## @brief         This class method will be public.
     #
     # @namespace sample_privacy.NewStyleSample.publicClassClassMethod
 
-    @classmethod
     def publicClassClassMethod(self):
         __notPrivateAttr__ = 1
         ## @var __privateAttr
@@ -165,7 +166,8 @@ class NewStyleSample(object):
     #
     # @namespace sample_privacy.NewStyleSample.__innerNotPrivate__
 
-    class __innerNotPrivate__(object):
+    class __innerNotPrivate__():
+
         ## @brief             This constructor won't be private.
         #
         # @namespace sample_privacy.NewStyleSample.__innerNotPrivate__.__init__
@@ -183,7 +185,8 @@ class NewStyleSample(object):
     # @namespace sample_privacy.NewStyleSample.__innerProtected
     # @private
 
-    class __innerProtected(object):
+    class __innerProtected():
+
         ## @brief             This constructor won't be private.
         #
         # @namespace sample_privacy.NewStyleSample.__innerProtected.__init__
@@ -201,7 +204,8 @@ class NewStyleSample(object):
     # @namespace sample_privacy.NewStyleSample.__innerPrivate
     # @private
 
-    class __innerPrivate(object):
+    class __innerPrivate():
+
         ## @brief             This constructor won't be private.
         #
         # @namespace sample_privacy.NewStyleSample.__innerPrivate.__init__
@@ -221,6 +225,7 @@ class NewStyleSample(object):
 # @namespace sample_privacy.OldStyleSample
 
 class OldStyleSample():
+
     __notPrivateClassAttr__ = 1
     ## @var __privateClassAttr
     # @hideinitializer
@@ -314,11 +319,11 @@ class OldStyleSample():
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
 
+    @staticmethod
     ## @brief         This static method will be public.
     #
     # @namespace sample_privacy.OldStyleSample.publicClassStaticMethod
 
-    @staticmethod
     def publicClassStaticMethod():
         __notPrivateAttr__ = 1
         ## @var __privateAttr
@@ -331,11 +336,11 @@ class OldStyleSample():
         _protectedAttr = 3
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
+    @classmethod
     ## @brief         This class method will be public.
     #
     # @namespace sample_privacy.OldStyleSample.publicClassClassMethod
 
-    @classmethod
     def publicClassClassMethod(self):
         public = 0
         __notPrivateAttr__ = 1
@@ -360,6 +365,7 @@ class OldStyleSample():
     # @namespace sample_privacy.OldStyleSample.__innerNotPrivate__
 
     class __innerNotPrivate__():
+
         ## @brief             This constructor won't be private.
         #
         # @namespace sample_privacy.OldStyleSample.__innerNotPrivate__.__init__
@@ -378,6 +384,7 @@ class OldStyleSample():
     # @private
 
     class __innerProtected():
+
         ## @brief             This constructor won't be private.
         #
         # @namespace sample_privacy.OldStyleSample.__innerProtected.__init__
@@ -396,6 +403,7 @@ class OldStyleSample():
     # @private
 
     class __innerPrivate():
+
         ## @brief             This constructor won't be private.
         #
         # @namespace sample_privacy.OldStyleSample.__innerPrivate.__init__

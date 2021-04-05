@@ -49,7 +49,7 @@ def invert(x):
 #
 #
 #
-class Polynomial(object):
+class Polynomial():
 
     ## @property		coefficients
     # A list of coefficients.
@@ -62,7 +62,6 @@ class Polynomial(object):
     #
     def __init__(self, coefficients):
         self.coefficients = coefficients
-
 
     ## @brief Find the real roots of the polynomial.
     #

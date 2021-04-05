@@ -61,7 +61,6 @@ class Polynomial(object):
         """
         self.coefficients = coefficients
 
-
     def find_roots(self):
         r"""Find the real roots of the polynomial.
 

@@ -50,7 +50,7 @@ def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
 #        likes_spam: A boolean indicating if we like SPAM or not.
 #        eggs: An integer count of the eggs we have laid.
 #
-class SampleClass(object):
+class SampleClass():
 
     ##Inits SampleClass with blah.
     def __init__(self, likes_spam=False):
@@ -60,6 +60,7 @@ class SampleClass(object):
     ##Performs operation blah.
     def public_method(self):
         pass
+
 
 i = None
 

@@ -124,7 +124,8 @@ are enough.
 2.  Some flexibility is allowed.  Most common names for sections are accepted,
 and items and descriptions may be separated by either colons or dashes.
 
-3.  The brief must be the first item and be no longer than one line.
+3.  The brief must be the first item and be no longer than one
+line.
 
 4.  Everything thrown into an examples section will be treated as code, so it's
 the perfect place for doctests.

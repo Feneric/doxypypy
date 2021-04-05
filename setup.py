@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""Setup file for the doxypypy package."""
+
 from setuptools import setup, find_packages
 from os.path import dirname, join
 from os import chdir

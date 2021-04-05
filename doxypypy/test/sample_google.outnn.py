@@ -50,7 +50,7 @@ def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
 #
 #
 #
-class SampleClass(object):
+class SampleClass():
 
     ## @property		likes_spam
     # A boolean indicating if we like SPAM or not.
@@ -66,6 +66,7 @@ class SampleClass(object):
     ## @brief Performs operation blah.
     def public_method(self):
         pass
+
 
 i = None
 

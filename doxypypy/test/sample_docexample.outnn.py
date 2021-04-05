@@ -56,6 +56,7 @@ def myfunction(arg1, arg2, kwarg='whatever.'):
         raise ValueError
     return '{0} - {1}, {2}'.format(arg1 + arg2, arg1 / arg2, kwarg)
 
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()

@@ -1,0 +1,21 @@
+[MASTER]
+ignore=test
+
+[FORMAT]
+max-line-length=120
+
+[DESIGN]
+max-branches=40
+max-locals=25
+max-nested-blocks=12
+max-statements=120
+
+[MESSAGES CONTROL]
+disable=
+	bad-continuation,
+	broad-except,
+	invalid-name,
+	undefined-loop-variable,
+	unused-argument,
+	unused-variable
+

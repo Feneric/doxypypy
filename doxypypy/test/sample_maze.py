@@ -33,6 +33,7 @@ def generateBlock(blockOptions=u"╱╲"):
     while True:
         yield choice(blockOptions)
 
+
 # Establish our block generator and generate a series of blocks.
 blockGenerator = generateBlock()
 blockCount = 0

@@ -50,7 +50,7 @@ def invert(x):
 #    Attributes:
 #        coefficients:  A list of coefficients.
 #
-class Polynomial(object):
+class Polynomial():
 
     ##Initialize a polynomial instance.
     #
@@ -60,7 +60,6 @@ class Polynomial(object):
     #
     def __init__(self, coefficients):
         self.coefficients = coefficients
-
 
     ##Find the real roots of the polynomial.
     #

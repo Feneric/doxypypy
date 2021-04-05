@@ -53,7 +53,7 @@ def invert(x):
 #
 #
 # @namespace sample_rawdocstring.Polynomial
-class Polynomial(object):
+class Polynomial():
 
     ## @property		coefficients
     # A list of coefficients.
@@ -67,7 +67,6 @@ class Polynomial(object):
     # @namespace sample_rawdocstring.Polynomial.__init__
     def __init__(self, coefficients):
         self.coefficients = coefficients
-
 
     ## @brief Find the real roots of the polynomial.
     #

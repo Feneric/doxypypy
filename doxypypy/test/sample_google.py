@@ -61,6 +61,7 @@ class SampleClass(object):
         """Performs operation blah."""
         pass
 
+
 i = None
 
 # We use a weighted dictionary search to find out where i is in

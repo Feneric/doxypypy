@@ -24,7 +24,8 @@ _protectedModuleAttr = 3
 #    private and protected members in it.
 #
 
-class NewStyleSample(object):
+class NewStyleSample():
+
     __notPrivateClassAttr__ = 1
     ## @var __privateClassAttr
     # @hideinitializer
@@ -117,10 +118,10 @@ class NewStyleSample(object):
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
 
+    @staticmethod
     ## @brief         This static method will be public.
     #
 
-    @staticmethod
     def publicClassStaticMethod():
         __notPrivateAttr__ = 1
         ## @var __privateAttr
@@ -133,10 +134,10 @@ class NewStyleSample(object):
         _protectedAttr = 3
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
+    @classmethod
     ## @brief         This class method will be public.
     #
 
-    @classmethod
     def publicClassClassMethod(self):
         __notPrivateAttr__ = 1
         ## @var __privateAttr
@@ -157,7 +158,8 @@ class NewStyleSample(object):
     #        Nothing special, just a not private helper class.
     #
 
-    class __innerNotPrivate__(object):
+    class __innerNotPrivate__():
+
         ## @brief             This constructor won't be private.
         #
 
@@ -174,7 +176,8 @@ class NewStyleSample(object):
     #
     # @private
 
-    class __innerProtected(object):
+    class __innerProtected():
+
         ## @brief             This constructor won't be private.
         #
 
@@ -191,7 +194,8 @@ class NewStyleSample(object):
     #
     # @private
 
-    class __innerPrivate(object):
+    class __innerPrivate():
+
         ## @brief             This constructor won't be private.
         #
 
@@ -209,6 +213,7 @@ class NewStyleSample(object):
 #
 
 class OldStyleSample():
+
     __notPrivateClassAttr__ = 1
     ## @var __privateClassAttr
     # @hideinitializer
@@ -299,10 +304,10 @@ class OldStyleSample():
         self.__privateAttr = __privateAttr
         self._protectedAttr = _protectedAttr
 
+    @staticmethod
     ## @brief         This static method will be public.
     #
 
-    @staticmethod
     def publicClassStaticMethod():
         __notPrivateAttr__ = 1
         ## @var __privateAttr
@@ -315,10 +320,10 @@ class OldStyleSample():
         _protectedAttr = 3
         return __notPrivateAttr__ + __privateAttr + _protectedAttr
 
+    @classmethod
     ## @brief         This class method will be public.
     #
 
-    @classmethod
     def publicClassClassMethod(self):
         public = 0
         __notPrivateAttr__ = 1
@@ -342,6 +347,7 @@ class OldStyleSample():
     #
 
     class __innerNotPrivate__():
+
         ## @brief             This constructor won't be private.
         #
 
@@ -359,6 +365,7 @@ class OldStyleSample():
     # @private
 
     class __innerProtected():
+
         ## @brief             This constructor won't be private.
         #
 
@@ -376,6 +383,7 @@ class OldStyleSample():
     # @private
 
     class __innerPrivate():
+
         ## @brief             This constructor won't be private.
         #
 

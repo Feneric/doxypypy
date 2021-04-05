@@ -19,6 +19,7 @@ class NewStyleSample(object):
     Nothing special, just a basic new-style class that has some
     private and protected members in it.
     """
+
     __notPrivateClassAttr__ = 1
     __privateClassAttr = 2
     _protectedClassAttr = 3
@@ -106,6 +107,7 @@ class NewStyleSample(object):
 
         Nothing special, just a not private helper class.
         """
+
         def __init__(self):
             """
             This constructor won't be private.
@@ -121,6 +123,7 @@ class NewStyleSample(object):
 
         Nothing special, just a protected helper class.
         """
+
         def __init__(self):
             """
             This constructor won't be private.
@@ -136,6 +139,7 @@ class NewStyleSample(object):
 
         Nothing special, just a private helper class.
         """
+
         def __init__(self):
             """
             This constructor won't be private.
@@ -153,6 +157,7 @@ class OldStyleSample():
     Nothing special, just a basic old-style class that has some
     private and protected members in it.
     """
+
     __notPrivateClassAttr__ = 1
     __privateClassAttr = 2
     _protectedClassAttr = 3
@@ -240,6 +245,7 @@ class OldStyleSample():
 
         Nothing special, just a not private helper class.
         """
+
         def __init__(self):
             """
             This constructor won't be private.
@@ -255,6 +261,7 @@ class OldStyleSample():
 
         Nothing special, just a protected helper class.
         """
+
         def __init__(self):
             """
             This constructor won't be private.
@@ -270,6 +277,7 @@ class OldStyleSample():
 
         Nothing special, just a private helper class.
         """
+
         def __init__(self):
             """
             This constructor won't be private.

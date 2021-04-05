@@ -3,27 +3,16 @@
 """
 Tests the doxypypy filter.
 
-These tests may all be executed by running "setup.py test" or executing
-this file directly.
+These tests may all be executed by running tox from the
+root level of the project.
 """
 import unittest
-from collections import namedtuple
+from argparse import Namespace
 from os import linesep, sep
-from os.path import join, basename, splitext
+from os.path import basename, splitext
 from ast import parse
 from codecs import open as codecsOpen
-# The following little bit of hackery makes for convenient out-of-module
-# testing.  It changes to the top-level directory of the module, changes
-# the import path, and does a direct import.
-if __name__ == '__main__':
-    from sys import path
-    from os import chdir, getcwd
-    from os.path import normpath, dirname
-    path.append('doxypypy')
-    chdir(normpath(join(getcwd(), dirname(__file__), '..', '..')))
-    from doxypypy.doxypypy import AstWalker
-else:
-    from ..doxypypy import AstWalker
+from ..doxypypy import AstWalker
 
 
 class TestDoxypypy(unittest.TestCase):
@@ -31,9 +20,17 @@ class TestDoxypypy(unittest.TestCase):
     Define our doxypypy tests.
     """
 
-    __Options = namedtuple(
-        'Options',
-        'autobrief autocode debug fullPathNamespace topLevelNamespace tablength'
+    maxDiff = None
+
+    __Options = Namespace(
+        autobrief=True,
+        autocode=True,
+        debug=False,
+        fullPathNamespace='dummy',
+        topLevelNamespace='dummy',
+        tablength=4,
+        filename='dummy.py',
+        object_respect=False
     )
     __dummySrc = [
         "print('testing: one, two, three, & four') " + linesep,
@@ -60,7 +57,7 @@ class TestDoxypypy(unittest.TestCase):
                 """Here is the brief."""''',
             'expectedOutput': [
                 '## @brief Here is the brief.\n# @namespace dummy.testClassOneLine',
-                'class testClassOneLine(object):'
+                'class testClassOneLine():'
             ]
         }, {
             'name': 'basicfunction',
@@ -90,7 +87,7 @@ class TestDoxypypy(unittest.TestCase):
                 '#',
                 '#                Here is the body. Unlike the brief',
                 '#                it has multiple lines.\n# @namespace dummy.testClassBrief',
-                'class testClassBrief(object):'
+                'class testClassBrief():'
             ]
         }, {
             'name': 'basicfunctionnobrief',
@@ -112,7 +109,7 @@ class TestDoxypypy(unittest.TestCase):
             'expectedOutput': [
                 "##Here is the body. It's not a brief as",
                 '#                it has multiple lines.\n# @namespace dummy.testClassNoBrief',
-                'class testClassNoBrief(object):'
+                'class testClassNoBrief():'
             ]
         }
     ]
@@ -185,7 +182,7 @@ class TestDoxypypy(unittest.TestCase):
             'expectedOutput': [
                 '## @brief Here is the brief.',
                 '#\n# @namespace dummy.testClassAttr',
-                'class testClassAttr(object):',
+                'class testClassAttr():',
                 '\n## @property\t\tattr\n# a test attribute.'
             ]
         }, {
@@ -200,7 +197,7 @@ class TestDoxypypy(unittest.TestCase):
             'expectedOutput': [
                 '## @brief Here is the brief.',
                 '#\n# @namespace dummy.testClassArgs',
-                'class testClassArgs(object):',
+                'class testClassArgs():',
                 '\n## @property\t\tattr1\n# a test attribute.',
                 '\n## @property\t\tattr2\n# another test attribute.',
                 '\n## @property\t\tattr3\n# yet another test attribute.'
@@ -278,7 +275,7 @@ class TestDoxypypy(unittest.TestCase):
                 '## @brief Here is the brief.',
                 '#',
                 '# @exception\t\tMyException\tbang bang a boom.\n# @namespace dummy.testClassRaisesOne',
-                'class testClassRaisesOne(object):'
+                'class testClassRaisesOne():'
             ]
         }, {
             'name': 'multipleraisesclass',
@@ -295,7 +292,7 @@ class TestDoxypypy(unittest.TestCase):
                 '# @exception\t\tMyException1\tbang bang a boom.',
                 '# @exception\t\tMyException2\tcrash.',
                 '# @exception\t\tMyException3\tsplatter.\n# @namespace dummy.testClassRaisesMultiple',
-                'class testClassRaisesMultiple(object):'
+                'class testClassRaisesMultiple():'
             ]
         }
     ]
@@ -304,10 +301,8 @@ class TestDoxypypy(unittest.TestCase):
         """
         Sets up a temporary AST for use with our unit tests.
         """
-        self.options = TestDoxypypy.__Options(True, True, False,
-                                              'dummy', 'dummy', 4)
-        self.dummyWalker = AstWalker(TestDoxypypy.__dummySrc,
-                                     self.options, 'dummy.py')
+        self.options = TestDoxypypy.__Options
+        self.dummyWalker = AstWalker(TestDoxypypy.__dummySrc, self.options)
 
     def test_stripOutAnds(self):
         """
@@ -503,12 +498,15 @@ class TestDoxypypy(unittest.TestCase):
         """
         Compare docstring parsing for a list of code snippets.
         """
+        options_name = self.options.filename
         for snippetTest in sampleSnippets:
+            self.options.filename = snippetTest['name'] + '.py'
             testWalker = AstWalker(snippetTest['inputCode'].split(linesep),
-                                   self.options, snippetTest['name'] + '.py')
+                                   self.options)
             funcAst = parse(snippetTest['inputCode'])
             getattr(testWalker, snippetTest['visitor'])(funcAst.body[0])
             self.assertEqual(testWalker.lines, snippetTest['expectedOutput'])
+        self.options.filename = options_name
 
     def test_sampleBasics(self):
         """
@@ -541,10 +539,11 @@ class TestDoxypypy(unittest.TestCase):
         self.snippetComparison(TestDoxypypy.__sampleRaises)
 
     @staticmethod
-    def readAndParseFile(inFilename, options, encoding="ASCII"):
+    def readAndParseFile(options, encoding="ASCII"):
         """
         Helper function to read and parse a given file and create an AST walker.
         """
+        inFilename = options.filename
         # Read contents of input file.
         if encoding == 'ASCII':
             inFile = open(inFilename)
@@ -553,34 +552,70 @@ class TestDoxypypy(unittest.TestCase):
         lines = inFile.readlines()
         inFile.close()
         # Create the abstract syntax tree for the input file.
-        testWalker = AstWalker(lines, options, inFilename)
+        testWalker = AstWalker(lines, options)
         testWalker.parseLines()
         # Output the modified source.
         return testWalker.getLines()
 
     def compareAgainstGoldStandard(self, inFilename, encoding="ASCII"):
         """
+        Compare the results against expectations.
+
         Read and process the input file and compare its output against the gold
         standard.
         """
         inFilenameBase = splitext(basename(inFilename))[0]
         fullPathNamespace = inFilenameBase.replace(sep, '.')
         trials = (
-            ('.out', (True, True, False, fullPathNamespace, inFilenameBase, 4)),
-            ('.outnc', (True, False, False, fullPathNamespace, inFilenameBase, 4)),
-            ('.outnn', (True, True, False, fullPathNamespace, None, 4)),
-            ('.outbare', (False, False, False, fullPathNamespace, None, 4))
+            ('.out', Namespace(
+                autobrief=True,
+                autocode=True,
+                debug=False,
+                fullPathNamespace=fullPathNamespace,
+                topLevelNamespace=inFilenameBase,
+                tablength=4,
+                filename=inFilename,
+                object_respect=False
+            )),
+            ('.outnc', Namespace(
+                autobrief=True,
+                autocode=False,
+                debug=False,
+                fullPathNamespace=fullPathNamespace,
+                topLevelNamespace=inFilenameBase,
+                tablength=4,
+                filename=inFilename,
+                object_respect=False
+            )),
+            ('.outnn', Namespace(
+                autobrief=True,
+                autocode=True,
+                debug=False,
+                fullPathNamespace=fullPathNamespace,
+                topLevelNamespace=None,
+                tablength=4,
+                filename=inFilename,
+                object_respect=False
+            )),
+            ('.outbare',  Namespace(
+                autobrief=False,
+                autocode=False,
+                debug=False,
+                fullPathNamespace=fullPathNamespace,
+                topLevelNamespace=None,
+                tablength=4,
+                filename=inFilename,
+                object_respect=False
+            ))
         )
         for options in trials:
-            output = self.readAndParseFile(inFilename,
-                                           TestDoxypypy.__Options(*options[1]),
-                                           encoding=encoding)
+            output = self.readAndParseFile(options[1], encoding=encoding)
             goldFilename = splitext(inFilename)[0] + options[0] + '.py'
             goldFile = open(goldFilename)
             goldContentLines = goldFile.readlines()
             goldFile.close()
-            # We have to go through some extra processing to ensure line endings
-            # match across platforms.
+            # We have to go through some extra processing to ensure line
+            # endings match across platforms.
             goldContent = linesep.join(line.rstrip()
                                        for line in goldContentLines)
             self.assertEqual(output.rstrip(linesep), goldContent.rstrip(linesep))
@@ -594,8 +629,7 @@ class TestDoxypypy(unittest.TestCase):
 
     def test_privacyProcessing(self):
         """
-        Test an example with different combinations of public, protected, and
-        private.
+        Test an example with different combinations of public, protected, and private.
         """
         sampleName = 'doxypypy/test/sample_privacy.py'
         self.compareAgainstGoldStandard(sampleName)
@@ -676,6 +710,7 @@ class TestDoxypypy(unittest.TestCase):
         """
         sampleName = 'doxypypy/test/sample_utf32lebom.py'
         self.compareAgainstGoldStandard(sampleName, encoding="UTF-32")
+
 
 if __name__ == '__main__':
     # When executed from the command line, run all the tests via unittest.

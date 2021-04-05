@@ -15,16 +15,20 @@ doctests.
 from __future__ import print_function
 
 from ast import NodeVisitor, parse, iter_fields, AST, Name, get_docstring
+from argparse import ArgumentParser
 from re import compile as regexpCompile, IGNORECASE, MULTILINE
 from types import GeneratorType
-from sys import stderr
-from os import linesep
+from sys import argv, stderr, exit as sysExit
+from os.path import basename, getsize
+from os import linesep, sep
 from string import whitespace
+from codecs import BOM_UTF8, open as codecsOpen
 from codeop import compile_command
+from chardet import detect
 
 
 def coroutine(func):
-    """Basic decorator to implement the coroutine pattern."""
+    """Implement the coroutine pattern as a decorator."""
     def __start(*args, **kwargs):
         """Automatically calls next() on the internal generator function."""
         __cr = func(*args, **kwargs)
@@ -104,22 +108,23 @@ class AstWalker(NodeVisitor):
 
     @staticmethod
     def _stripOutAnds(inStr):
-        """Takes a string and returns the same without ands or ampersands."""
+        """Take a string and returns the same without ands or ampersands."""
         assert isinstance(inStr, str)
         return inStr.replace(' and ', ' ').replace(' & ', ' ')
 
     @staticmethod
     def _endCodeIfNeeded(line, inCodeBlock):
-        """Simple routine to append end code marker if needed."""
+        """Append end code marker if needed."""
         assert isinstance(line, str)
         if inCodeBlock:
             line = '# @endcode{0}{1}'.format(linesep, line.rstrip())
             inCodeBlock = False
         return line, inCodeBlock
 
+    @staticmethod
     @coroutine
-    def _checkIfCode(self, inCodeBlockObj):
-        """Checks whether or not a given line appears to be Python code."""
+    def _checkIfCode(inCodeBlockObj):
+        """Check whether or not a given line appears to be Python code."""
         while True:
             line, lines, lineNum = (yield)
             testLineNum = 1
@@ -178,7 +183,7 @@ class AstWalker(NodeVisitor):
     @coroutine
     def __alterDocstring(self, tail='', writer=None):
         """
-        Runs eternally, processing docstring lines.
+        Run eternally, processing docstring lines.
 
         Parses docstring lines as they get fed in via send, applies appropriate
         Doxygen tags, and passes them along in batches for writing.
@@ -252,94 +257,92 @@ class AstWalker(NodeVisitor):
                             inCodeBlockObj[0] = inCodeBlock
                             lines.append('#' + line)
                             continue
-                        else:
-                            match = AstWalker.__argsRE.match(line)
-                            if match and not inCodeBlock:
-                                # We've got something that looks like an item /
-                                # description pair.
-                                if 'property' in prefix:
-                                    line = '# {0}\t{1[name]}{2}# {1[desc]}'.format(
-                                        prefix, match.groupdict(), linesep)
-                                else:
-                                    line = ' {0}\t{1[name]}\t{1[desc]}'.format(
-                                        prefix, match.groupdict())
+                        match = AstWalker.__argsRE.match(line)
+                        if match and not inCodeBlock:
+                            # We've got something that looks like an item /
+                            # description pair.
+                            if 'property' in prefix:
+                                line = '# {0}\t{1[name]}{2}# {1[desc]}'.format(
+                                    prefix, match.groupdict(), linesep)
                             else:
-                                match = AstWalker.__raisesStartRE.match(line)
-                                if match:
-                                    line = line.replace(match.group(0), '').rstrip()
-                                    if 'see' in match.group(1).lower():
-                                        # We've got a "see also" section
-                                        prefix = '@sa\t'
-                                    else:
-                                        # We've got an "exceptions" section
-                                        prefix = '@exception\t'
-                                    lines[-1], inCodeBlock = self._endCodeIfNeeded(
-                                        lines[-1], inCodeBlock)
-                                    inCodeBlockObj[0] = inCodeBlock
-                                    lines.append('#' + line)
-                                    continue
+                                line = ' {0}\t{1[name]}\t{1[desc]}'.format(
+                                    prefix, match.groupdict())
+                        else:
+                            match = AstWalker.__raisesStartRE.match(line)
+                            if match:
+                                line = line.replace(match.group(0), '').rstrip()
+                                if 'see' in match.group(1).lower():
+                                    # We've got a "see also" section
+                                    prefix = '@sa\t'
                                 else:
-                                    match = AstWalker.__listRE.match(line)
-                                    if match and not inCodeBlock:
-                                        # We've got a list of something or another
-                                        itemList = []
-                                        for itemMatch in AstWalker.__listItemRE.findall(self._stripOutAnds(
-                                                                                        match.group(0))):
-                                            itemList.append('# {0}\t{1}{2}'.format(
-                                                prefix, itemMatch, linesep))
-                                        line = ''.join(itemList)[1:]
-                                    else:
-                                        match = AstWalker.__examplesStartRE.match(line)
-                                        if match and lines[-1].strip() == '#' \
-                                           and self.args.autocode:
-                                            # We've got an "example" section
-                                            inCodeBlock = True
-                                            inCodeBlockObj[0] = True
-                                            line = line.replace(match.group(0),
-                                                                ' @b Examples{0}# @code'.format(linesep))
-                                        else:
-                                            match = AstWalker.__sectionStartRE.match(line)
-                                            if match:
-                                                # We've got an arbitrary section
-                                                prefix = ''
-                                                inSection = True
-                                                # What's the indentation of the section heading?
-                                                sectionHeadingIndent = len(line.expandtabs(self.args.tablength)) \
-                                                    - len(line.expandtabs(self.args.tablength).lstrip())
-                                                line = line.replace(
-                                                    match.group(0),
-                                                    ' @par {0}'.format(match.group(1))
+                                    # We've got an "exceptions" section
+                                    prefix = '@exception\t'
+                                lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                    lines[-1], inCodeBlock)
+                                inCodeBlockObj[0] = inCodeBlock
+                                lines.append('#' + line)
+                                continue
+                            match = AstWalker.__listRE.match(line)
+                            if match and not inCodeBlock:
+                                # We've got a list of something or another
+                                itemList = []
+                                for itemMatch in AstWalker.__listItemRE.findall(self._stripOutAnds(
+                                                                                match.group(0))):
+                                    itemList.append('# {0}\t{1}{2}'.format(
+                                        prefix, itemMatch, linesep))
+                                line = ''.join(itemList)[1:]
+                            else:
+                                match = AstWalker.__examplesStartRE.match(line)
+                                if match and lines[-1].strip() == '#' \
+                                   and self.args.autocode:
+                                    # We've got an "example" section
+                                    inCodeBlock = True
+                                    inCodeBlockObj[0] = True
+                                    line = line.replace(match.group(0),
+                                                        ' @b Examples{0}# @code'.format(linesep))
+                                else:
+                                    match = AstWalker.__sectionStartRE.match(line)
+                                    if match:
+                                        # We've got an arbitrary section
+                                        prefix = ''
+                                        inSection = True
+                                        # What's the indentation of the section heading?
+                                        sectionHeadingIndent = len(line.expandtabs(self.args.tablength)) \
+                                            - len(line.expandtabs(self.args.tablength).lstrip())
+                                        line = line.replace(
+                                            match.group(0),
+                                            ' @par {0}'.format(match.group(1))
+                                        )
+                                        if lines[-1] == '# @par':
+                                            lines[-1] = '#'
+                                        lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                            lines[-1], inCodeBlock)
+                                        inCodeBlockObj[0] = inCodeBlock
+                                        lines.append('#' + line)
+                                        continue
+                                    if prefix:
+                                        match = AstWalker.__singleListItemRE.match(line)
+                                        if match and not inCodeBlock:
+                                            # Probably a single list item
+                                            line = ' {0}\t{1}'.format(
+                                                prefix, match.group(0))
+                                        elif self.args.autocode:
+                                            codeChecker.send(
+                                                (
+                                                    line, lines,
+                                                    lineNum - firstLineNum
                                                 )
-                                                if lines[-1] == '# @par':
-                                                    lines[-1] = '#'
-                                                lines[-1], inCodeBlock = self._endCodeIfNeeded(
-                                                    lines[-1], inCodeBlock)
-                                                inCodeBlockObj[0] = inCodeBlock
-                                                lines.append('#' + line)
-                                                continue
-                                            elif prefix:
-                                                match = AstWalker.__singleListItemRE.match(line)
-                                                if match and not inCodeBlock:
-                                                    # Probably a single list item
-                                                    line = ' {0}\t{1}'.format(
-                                                        prefix, match.group(0))
-                                                elif self.args.autocode:
-                                                    codeChecker.send(
-                                                        (
-                                                            line, lines,
-                                                            lineNum - firstLineNum
-                                                        )
-                                                    )
-                                                    inCodeBlock = inCodeBlockObj[0]
-                                            else:
-                                                if self.args.autocode:
-                                                    codeChecker.send(
-                                                        (
-                                                            line, lines,
-                                                            lineNum - firstLineNum
-                                                        )
-                                                    )
-                                                    inCodeBlock = inCodeBlockObj[0]
+                                            )
+                                            inCodeBlock = inCodeBlockObj[0]
+                                    else:
+                                        if self.args.autocode:
+                                            codeChecker.send(
+                                                (
+                                                    line, lines,
+                                                    lineNum - firstLineNum
+                                                )
+                                            )
+                                            inCodeBlock = inCodeBlockObj[0]
 
                 # If we were passed a tail, append it to the docstring.
                 # Note that this means that we need a docstring for this
@@ -370,7 +373,7 @@ class AstWalker(NodeVisitor):
     @coroutine
     def __writeDocstring(self):
         """
-        Runs eternally, dumping out docstring line batches as they get fed in.
+        Run eternally, dumping out docstring line batches as they get fed in.
 
         Replaces original batches of docstring lines with modified versions
         fed in via send.
@@ -385,7 +388,7 @@ class AstWalker(NodeVisitor):
 
     def _processDocstring(self, node, tail='', **kwargs):
         """
-        Handles a docstring for functions, classes, and modules.
+        Handle a docstring for functions, classes, and modules.
 
         Basically just figures out the bounds of the docstring and sends it
         off to the parser to do the actual work.
@@ -453,7 +456,7 @@ class AstWalker(NodeVisitor):
 
         if defLines:
             match = AstWalker.__indentRE.match(defLines[0])
-            indentStr = match and match.group(1) or ''
+            indentStr = match.group(1) if match else ''
             self.docLines = [AstWalker.__newlineRE.sub(indentStr + '#', docLine)
                              for docLine in self.docLines]
 
@@ -463,7 +466,7 @@ class AstWalker(NodeVisitor):
         if typeName != 'Module':
             if docstringStart < len(self.lines):
                 match = AstWalker.__indentRE.match(self.lines[docstringStart])
-                indentStr = match and match.group(1) or ''
+                indentStr = match.group(1) if match else ''
             else:
                 indentStr = ''
             containingNodes = kwargs.get('containingNodes', []) or []
@@ -491,7 +494,7 @@ class AstWalker(NodeVisitor):
                         indentStr = ''
                         while not indentStr and indentLineNum < len(self.lines):
                             match = AstWalker.__indentRE.match(self.lines[indentLineNum])
-                            indentStr = match and match.group(1) or ''
+                            indentStr = match.group(1) if match else ''
                             indentLineNum += 1
                         varLines = ['{0}{1}'.format(linesep, docLine).replace(
                                     linesep, linesep + indentStr)
@@ -505,7 +508,6 @@ class AstWalker(NodeVisitor):
                         if namespaceLoc >= 0:
                             self.docLines[-1] += defLines[-1][namespaceLoc:]
                             defLines[-1] = defLines[-1][:namespaceLoc]
-
 
         # For classes and functions, apply our changes and reverse the
         # order of the declaration and docstring, and for modules just
@@ -584,7 +586,7 @@ class AstWalker(NodeVisitor):
 
     def _getFullPathName(self, containingNodes):
         """
-        Returns the full node hierarchy rooted at module name.
+        Return the full node hierarchy rooted at module name.
 
         The list representing the full path through containing nodes
         (starting with the module itself) is returned.
@@ -594,7 +596,7 @@ class AstWalker(NodeVisitor):
 
     def visit_Module(self, node, **kwargs):
         """
-        Handles the module-level docstring.
+        Handle the module-level docstring.
 
         Process the module-level docstring and create appropriate Doxygen tags
         if autobrief option is set.
@@ -616,7 +618,7 @@ class AstWalker(NodeVisitor):
 
     def visit_Assign(self, node, **kwargs):
         """
-        Handles assignments within code.
+        Handle assignments within code.
 
         Variable assignments in Python are used to represent interface
         attributes in addition to basic variables.  If an assignment appears
@@ -642,7 +644,7 @@ class AstWalker(NodeVisitor):
                                                             linesep))
         if isinstance(node.targets[0], Name):
             match = AstWalker.__indentRE.match(self.lines[lineNum])
-            indentStr = match and match.group(1) or ''
+            indentStr = match.group(1) if match else ''
             restrictionLevel = self._checkMemberName(node.targets[0].id)
             if restrictionLevel:
                 self.lines[lineNum] = '{0}## @var {1}{2}{0}' \
@@ -658,7 +660,7 @@ class AstWalker(NodeVisitor):
 
     def visit_Call(self, node, **kwargs):
         """
-        Handles function calls within code.
+        Handle function calls within code.
 
         Function calls in Python are used to represent interface implementations
         in addition to their normal use.  If a call appears to mark an
@@ -680,7 +682,7 @@ class AstWalker(NodeVisitor):
 
     def visit_FunctionDef(self, node, **kwargs):
         """
-        Handles function definitions within code.
+        Handle function definitions within code.
 
         Process a function's docstring, keeping well aware of the function's
         context and whether or not it's part of an interface definition.
@@ -691,12 +693,13 @@ class AstWalker(NodeVisitor):
         # if it's a property, rewrite the definition to something Doxygen understands
         # (We'll use the getter for the documentation)
         if len(node.decorator_list) > 0:
-            match = AstWalker.__indentRE.match(self.lines[node.lineno-1])
-            indentStr = match and match.group(1) or ''
-            if "property" == getattr(node.decorator_list[0], "id", None):
-                self.lines[node.lineno - 1] = indentStr + "{} = property".format(node.name) + linesep + indentStr + "## \private" + linesep + self.lines[node.lineno-1]
-            if "setter" == getattr(node.decorator_list[0], "attr", None):
-                self.lines[node.lineno - 1] = indentStr + "## \private" + linesep + self.lines[node.lineno-1]
+            match = AstWalker.__indentRE.match(self.lines[node.lineno - 1])
+            indentStr = match.group(1) if match else ''
+            if getattr(node.decorator_list[0], "id", None) == "property":
+                self.lines[node.lineno - 1] = indentStr + "{} = property".format(node.name) + \
+                    linesep + indentStr + "## \\private" + linesep + self.lines[node.lineno - 1]
+            if getattr(node.decorator_list[0], "attr", None) == "setter":
+                self.lines[node.lineno - 1] = indentStr + "## \\private" + linesep + self.lines[node.lineno - 1]
 
         # Push either 'interface' or 'class' onto our containing nodes
         # hierarchy so we can keep track of context.  This will let us tell
@@ -721,7 +724,7 @@ class AstWalker(NodeVisitor):
 
     def visit_ClassDef(self, node, **kwargs):
         """
-        Handles class definitions within code.
+        Handle class definitions within code.
 
         Process the docstring.  Note though that in Python Class definitions
         are used to define interfaces in addition to classes.
@@ -778,11 +781,12 @@ class AstWalker(NodeVisitor):
         containingNodes.pop()
 
     # With Python 3.8, a function visit_Constant() was added to ast.NodeVisitor
-    # This adds an overload of this function that can take additional arguments,
-    # but ignores them and calls the function from NodeVisitor.
+    # This adds an overload of this function that can take additional
+    # arguments, but ignores them and calls the function from NodeVisitor.
     # See also https://github.com/Feneric/doxypypy/issues/70
     def visit_Constant(self, node, **kwargs):
-        super().visit_Constant(node);
+        """Handle constant definitions within code."""
+        super().visit_Constant(node)
 
     def parseLines(self):
         """Form an AST for the code and produce a new version of the source."""
@@ -797,26 +801,21 @@ class AstWalker(NodeVisitor):
 
 def main():
     """
+    Start it up.
+
     Starts the parser on the file given by the filename as the first
     argument on the command line.
     """
-    from argparse import ArgumentParser
-    from os import sep
-    from os.path import basename, getsize
-    from sys import argv, exit as sysExit
-    from chardet import detect
-    from codecs import BOM_UTF8, open as codecsOpen
 
     def argParse():
         """
-        Parses command line options.
+        Parse command line options.
 
         Generally we're supporting all the command line options that doxypy.py
         supports in an analogous way to make it easy to switch back and forth.
         We additionally support a top-level namespace argument that is used
         to trim away excess path information.
         """
-
         prog = basename(argv[0])
         parser = ArgumentParser(prog=prog,
                                 usage="%(prog)s [options] filename")
