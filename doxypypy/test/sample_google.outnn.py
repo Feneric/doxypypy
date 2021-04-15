@@ -3,6 +3,8 @@
 #
 #This is basically as close a copy of the Python examples in the Google
 #Python Style Guide as possible while still being valid code.
+# @note this is a note
+# @note this is also a note
 #
 #http://google-styleguide.googlecode.com/svn/trunk/pyguide.html?showone=Comments#Comments
 #
