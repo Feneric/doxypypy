@@ -211,8 +211,9 @@ class AstWalker(NodeVisitor):
                         match = tagRE.search(line)
                         if match:
                             # We've got a simple one-line Doxygen command
-                            lines[-1], inCodeBlock = self._endCodeIfNeeded(
-                                lines[-1], inCodeBlock)
+                            if lines:
+                                lines[-1], inCodeBlock = self._endCodeIfNeeded(
+                                    lines[-1], inCodeBlock)
                             inCodeBlockObj[0] = inCodeBlock
                             writer.send((firstLineNum, lineNum - 1, lines))
                             lines = []
