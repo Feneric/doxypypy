@@ -568,19 +568,22 @@ class TestDoxypypy(unittest.TestCase):
         # Output the modified source.
         return testWalker.getLines()
 
-    def compareAgainstGoldStandard(self, inFilename, encoding="ASCII"):
+    def compareAgainstGoldStandard(self, inFilename, encoding="ASCII", equalIndent=False):
         """
         Read and process the input file and compare its output against the gold
         standard.
         """
         inFilenameBase = splitext(basename(inFilename))[0]
         fullPathNamespace = inFilenameBase.replace(sep, '.')
-        trials = (
-            ('.out', (True, True, False, fullPathNamespace, inFilenameBase, 4, True, False)),
-            ('.outnc', (True, False, False, fullPathNamespace, inFilenameBase, 4, True, False)),
-            ('.outnn', (True, True, False, fullPathNamespace, None, 4, True, False)),
-            ('.outbare', (False, False, False, fullPathNamespace, None, 4, True, False))
-        )
+        if not equalIndent:
+            trials = (
+                ('.out', (True, True, False, fullPathNamespace, inFilenameBase, 4, True, equalIndent)),
+                ('.outnc', (True, False, False, fullPathNamespace, inFilenameBase, 4, True, equalIndent)),
+                ('.outnn', (True, True, False, fullPathNamespace, None, 4, True, equalIndent)),
+                ('.outbare', (False, False, False, fullPathNamespace, None, 4, True, equalIndent))
+            )
+        else:
+            trials = (('.outeq', (True, True, False, fullPathNamespace, None, 4, True, equalIndent)),)
         for options in trials:
             output = self.readAndParseFile(inFilename,
                                            TestDoxypypy.__Options(*options[1]),
@@ -690,11 +693,18 @@ class TestDoxypypy(unittest.TestCase):
      
     def test_rstProcessing(self):
         """
-        Test the examples in the Google Python Style Guide.
+        Test the examples for rst styles.
         """
         sampleName = 'doxypypy/test/sample_rstexample.py'
         self.compareAgainstGoldStandard(sampleName)
-
+    
+    def test_indentProcessing(self):
+        """
+        Test the examples with rst and indentation reduction.
+        """
+        sampleName = 'doxypypy/test/sample_rstexample.py'
+        self.compareAgainstGoldStandard(sampleName, equalIndent=True)
+        
 if __name__ == '__main__':
     # When executed from the command line, run all the tests via unittest.
     # e.g. from root of this repository: (this makes relative module import resolving easier ...)

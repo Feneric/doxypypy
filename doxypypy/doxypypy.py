@@ -625,7 +625,7 @@ class AstWalker(NodeVisitor):
                     if docIndentPart is None:
                         # no match
                         continue
-                    print (f"match line {docstringStart + index} from {docIndentPart.start(1)} to {docIndentPart.end(1)}")
+                    #print (f"match line {docstringStart + index} from {docIndentPart.start(1)} to {docIndentPart.end(1)}")
                     self.docLines[index] = docLine[:docIndentPart.start(1)] + docLine[docIndentPart.end(1):]
 
         # Taking away a docstring from an interface method definition sometimes
