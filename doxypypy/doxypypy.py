@@ -110,11 +110,6 @@ class AstWalker(NodeVisitor):
 
     __LITERAL_SECTION_MARK = "~~~~~~"
 
-    # work around for Python 3.8 from svigerske
-    def visit_Constant(self, node, **kwargs):
-        print (f"Constant {node} visited.")
-        super().visit_Constant(node);
-
     def __init__(self, lines, options, inFilename):
         """Initialize a few class variables in preparation for our walk."""
         self.lines = lines
@@ -612,7 +607,7 @@ class AstWalker(NodeVisitor):
                     self.docLines[1] = '#'
             # safety catch up for starting with doxygen marker even if first DocString Line is empty
             # and has been removed in former processings for autobrief
-            if safetyCounter > 0 and not self.docLines[0].lstrip().startswidth('##'):
+            if safetyCounter > 0 and not self.docLines[0].lstrip().startswith('##'):
                 self.docLines[0] = '##' + self.docLines[0]
 
         if defLines:
@@ -958,6 +953,15 @@ class AstWalker(NodeVisitor):
         # Remove the item we pushed onto the containing nodes hierarchy.
         containingNodes.pop()
 
+    # work around for new ast.Constant Class in Python 3.8 from svigerske
+    # Constants are objects for any literal found in source code -> they are not needed for 
+    # documentation processing (they even don't have docstrings) -> just pass them along to doxypypy unrelated code
+    def visit_Constant(self, node, **kwargs):
+        containingNodes = kwargs.get('containingNodes') or []
+        #print(f"Constant: containing {len(containingNodes)} nodes {containingNodes}.")
+        self.generic_visit(node, containingNodes=containingNodes)
+        #super().visit_Constant(node);    
+    
     def parseLines(self):
         """Form an AST for the code and produce a new version of the source."""
         inAst = parse(''.join(self.lines), self.inFilename)

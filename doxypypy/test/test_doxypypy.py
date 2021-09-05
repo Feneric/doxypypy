@@ -33,7 +33,7 @@ class TestDoxypypy(unittest.TestCase):
 
     __Options = namedtuple(
         'Options',
-        'autobrief autocode debug fullPathNamespace topLevelNamespace tablength object_respect'
+        'autobrief autocode debug fullPathNamespace topLevelNamespace tablength object_respect equalIndent'
     )
     __dummySrc = [
         "print('testing: one, two, three, & four') " + linesep,
@@ -314,7 +314,7 @@ class TestDoxypypy(unittest.TestCase):
         Sets up a temporary AST for use with our unit tests.
         """
         self.options = TestDoxypypy.__Options(True, True, False,
-                                              'dummy', 'dummy', 4, True)
+                                              'dummy', 'dummy', 4, True, False)
         self.dummyWalker = AstWalker(TestDoxypypy.__dummySrc,
                                      self.options, 'dummy.py')
 
@@ -576,10 +576,10 @@ class TestDoxypypy(unittest.TestCase):
         inFilenameBase = splitext(basename(inFilename))[0]
         fullPathNamespace = inFilenameBase.replace(sep, '.')
         trials = (
-            ('.out', (True, True, False, fullPathNamespace, inFilenameBase, 4, True)),
-            ('.outnc', (True, False, False, fullPathNamespace, inFilenameBase, 4, True)),
-            ('.outnn', (True, True, False, fullPathNamespace, None, 4, True)),
-            ('.outbare', (False, False, False, fullPathNamespace, None, 4, True))
+            ('.out', (True, True, False, fullPathNamespace, inFilenameBase, 4, True, False)),
+            ('.outnc', (True, False, False, fullPathNamespace, inFilenameBase, 4, True, False)),
+            ('.outnn', (True, True, False, fullPathNamespace, None, 4, True, False)),
+            ('.outbare', (False, False, False, fullPathNamespace, None, 4, True, False))
         )
         for options in trials:
             output = self.readAndParseFile(inFilename,
