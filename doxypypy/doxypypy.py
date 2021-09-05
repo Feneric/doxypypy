@@ -112,6 +112,7 @@ class AstWalker(NodeVisitor):
 
     # work around for Python 3.8 from svigerske
     def visit_Constant(self, node, **kwargs):
+        print (f"Constant {node} visited.")
         super().visit_Constant(node);
 
     def __init__(self, lines, options, inFilename):
@@ -139,7 +140,7 @@ class AstWalker(NodeVisitor):
     @coroutine
     def _checkIfCode(self, inCodeBlockObj):
         """Checks whether or not a given line appears to be Python code."""
-        # Note: This become state full by victor in regard to wether it is in code block or not.
+        # Note: This become state full by victor in regard to whether it is in code block or not.
         #       But it is state full in regard to ">>>" sections. If it is inside such a section it checks for ... and outside not...
         while True:
             line, lines, lineNum = (yield)
@@ -222,6 +223,7 @@ class AstWalker(NodeVisitor):
         prefix = ''
         firstLineNum = -1
         sectionHeadingIndent = 0
+        docstringIndent = 0
         codeChecker = self._checkIfCode(inCodeBlockObj)
         while True:
             lineNum, line = (yield)
@@ -244,7 +246,8 @@ class AstWalker(NodeVisitor):
                             firstLineNum = lineNum
                             line = line.replace(match.group(1), doxyTag)
                             timeToSend = True
-
+                            
+                    # Special Line Mode handlings:
                     if inSection:
                         # The last line belonged to a section.
                         # Does this one too? (Ignoring empty lines.)
@@ -268,6 +271,7 @@ class AstWalker(NodeVisitor):
                                               - len(line.expandtabs(self.options.tablength).lstrip())
                             if current_indent > sectionHeadingIndent:
                                 # just use it unchanged, but ensure it is at least 4 spaces indented
+                                #doxygen only evaluates relative indents to former indent level
                                 if (current_indent - sectionHeadingIndent) < 4:
                                     extra_indent = " " * (4 - current_indent + sectionHeadingIndent)
                                 else:
@@ -472,7 +476,7 @@ class AstWalker(NodeVisitor):
                                                     #lines.append('#' + match[1] + ":")
                                                     line = match[1] + ":"
                                                     #lines.append('#' + AstWalker.__LITERAL_SECTION_MARK) -> ensure the indention level ...
-                                                    #lineNum += 10 # here was one line more inserted then original docstring has ... that's bad as lineNum is only the current line number and shouldn't be changed ...
+                                                    #lineNum += 10 # here was one line more inserted then original docstring has ... that's bad as lineNum is only the current line number and shouldn't be changed here ...
                                                     # fall through for code processing, too
 
                                             if prefix and not inCodeBlock:
@@ -576,7 +580,7 @@ class AstWalker(NodeVisitor):
         self.docLines = self.lines[docstringStart: endLineNum]
 
         # If we have a docstring, extract information from it.
-        if self.docLines:
+        if self.docLines:      
             # Get rid of the docstring delineators.
             self.docLines[0] = AstWalker.__docstrMarkerRE.sub('',
                                                               self.docLines[0])
@@ -590,6 +594,7 @@ class AstWalker(NodeVisitor):
             docstringConverter.send((len(self.docLines) - 1, None))
 
         # Add a Doxygen @brief tag to any single-line description.
+        # but take care not to remove the initial '##' doxygen marker
         if self.options.autobrief:
             safetyCounter = 0
             while len(self.docLines) > 0 and self.docLines[0].lstrip('#').strip() == '':
@@ -605,12 +610,28 @@ class AstWalker(NodeVisitor):
                 self.docLines[0] = "## @brief {0}".format(self.docLines[0].lstrip('#'))
                 if len(self.docLines) > 1 and self.docLines[1] == '# @par':
                     self.docLines[1] = '#'
+            # safety catch up for starting with doxygen marker even if first DocString Line is empty
+            # and has been removed in former processings for autobrief
+            if safetyCounter > 0 and not self.docLines[0].lstrip().startswidth('##'):
+                self.docLines[0] = '##' + self.docLines[0]
 
         if defLines:
+            # make all docstring comments on same indentation as their enclosing object's indention level
+            # but remove this added indent within the docstring if needed
             match = AstWalker.__indentRE.match(defLines[0])
             indentStr = match and match.group(1) or ''
             self.docLines = [AstWalker.__newlineRE.sub(indentStr + '#', docLine)
                              for docLine in self.docLines]
+            if self.options.equalIndent and len(indentStr) > 0:
+                # remove the same amount of indent within the docLine part
+                indentPartRE = regexpCompile(f"{indentStr}#+({indentStr})")
+                for (index,docLine) in enumerate(self.docLines):
+                    docIndentPart = indentPartRE.match(docLine)
+                    if docIndentPart is None:
+                        # no match
+                        continue
+                    print (f"match line {docstringStart + index} from {docIndentPart.start(1)} to {docIndentPart.end(1)}")
+                    self.docLines[index] = docLine[:docIndentPart.start(1)] + docLine[docIndentPart.end(1):]
 
         # Taking away a docstring from an interface method definition sometimes
         # leaves broken code as the docstring may be the only code in it.
@@ -1004,6 +1025,11 @@ def main():
             "-O", "--object-respect",
             action="store_true", dest="object_respect",
             help="By default, doxypypy hides object class from class dependencies even if class inherits explictilty from objects (new-style class), this option disable this."
+        )
+        parser.add_option(
+            "-e","--equalIndent",
+            action="store_true", dest="equalIndent",
+            help="Make indention level of docstrings matching with their enclosing definitions one."
         )
         group = OptionGroup(parser, "Debug Options")
         group.add_option(
