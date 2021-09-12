@@ -875,7 +875,8 @@ class AstWalker(NodeVisitor):
         if get_docstring(node):
             last_doc_line_number = self._processDocstring(node, tail,
                                    containingNodes=containingNodes)
-            #self._shift_decorators_below_docstring(node, last_doc_line_number)
+            if self.args.keepDecorators:
+                self._shift_decorators_below_docstring(node, last_doc_line_number)
 
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=containingNodes)
@@ -935,7 +936,8 @@ class AstWalker(NodeVisitor):
         if get_docstring(node):
             last_doc_line_number = self._processDocstring(node, contextTag,
                                    containingNodes=containingNodes)
-            #self._shift_decorators_below_docstring(node, last_doc_line_number)
+            if self.args.keepDecorators:
+                self._shift_decorators_below_docstring(node, last_doc_line_number)
         # Visit any contained nodes.
         self.generic_visit(node, containingNodes=containingNodes)
         # Remove the item we pushed onto the containing nodes hierarchy.
@@ -1035,6 +1037,12 @@ def main():
             "-e","--equalIndent",
             action="store_true", dest="equalIndent",
             help="Make indention level of docstrings matching with their enclosing definitions one."
+        )
+        parser.add_argument(
+            "-k","--keepDecorators",
+            action="store_true", dest="keepDecorators",
+            help="Decorators are usually ignored by doxypypy and thus are before the doxygen docString output and not before it's definition string."
+                 "With this option decorators are kept before it's definition string (function or class names). But this requires dogygen 1.9 or higher."
         )
         group = parser.add_argument_group("Debug Options")
         group.add_argument(

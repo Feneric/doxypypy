@@ -30,7 +30,8 @@ class TestDoxypypy(unittest.TestCase):
         tablength=4,
         filename='dummy.py',
         object_respect=False,
-        equalIndent=False
+        equalIndent=False,
+        keepDecorators=False
     )
     __dummySrc = [
         "print('testing: one, two, three, & four') " + linesep,
@@ -587,7 +588,8 @@ class TestDoxypypy(unittest.TestCase):
                     tablength=4,
                     filename=inFilename,
                     object_respect=False,
-                    equalIndent=equalIndent
+                    equalIndent=equalIndent,
+                    keepDecorators=False
                 )),
                 ('.outnc', Namespace(
                     autobrief=True,
@@ -598,7 +600,8 @@ class TestDoxypypy(unittest.TestCase):
                     tablength=4,
                     filename=inFilename,
                     object_respect=False,
-                    equalIndent=equalIndent
+                    equalIndent=equalIndent,
+                    keepDecorators=False
                 )),
                 ('.outnn', Namespace(
                     autobrief=True,
@@ -609,7 +612,8 @@ class TestDoxypypy(unittest.TestCase):
                     tablength=4,
                     filename=inFilename,
                     object_respect=False,
-                    equalIndent=equalIndent
+                    equalIndent=equalIndent,
+                    keepDecorators=False
                 )),
                 ('.outbare',  Namespace(
                     autobrief=False,
@@ -620,7 +624,8 @@ class TestDoxypypy(unittest.TestCase):
                     tablength=4,
                     filename=inFilename,
                     object_respect=False,
-                    equalIndent=equalIndent
+                    equalIndent=equalIndent,
+                    keepDecorators=False
                 ))
             )
         else:
@@ -633,7 +638,8 @@ class TestDoxypypy(unittest.TestCase):
                     tablength=4,
                     filename=inFilename,
                     object_respect=True,
-                    equalIndent=equalIndent
+                    equalIndent=equalIndent,
+                    keepDecorators=False
                 )),)
                 
         for options in trials:
