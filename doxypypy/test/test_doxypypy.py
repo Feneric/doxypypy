@@ -19,7 +19,6 @@ class TestDoxypypy(unittest.TestCase):
     """
     Define our doxypypy tests.
     """
-
     maxDiff = None
 
     __Options = Namespace(
@@ -30,7 +29,8 @@ class TestDoxypypy(unittest.TestCase):
         topLevelNamespace='dummy',
         tablength=4,
         filename='dummy.py',
-        object_respect=False
+        object_respect=False,
+        equalIndent=False
     )
     __dummySrc = [
         "print('testing: one, two, three, & four') " + linesep,
@@ -296,6 +296,15 @@ class TestDoxypypy(unittest.TestCase):
             ]
         }
     ]
+    __linesep_for_source = '''
+'''
+    """
+    detect the line ending within test string constants above
+
+     -> as git can check out \n on windows too
+     it's git configuration dependent if these line endings are OS specific
+     or just \n.
+    """
 
     def setUp(self):
         """
@@ -501,10 +510,11 @@ class TestDoxypypy(unittest.TestCase):
         options_name = self.options.filename
         for snippetTest in sampleSnippets:
             self.options.filename = snippetTest['name'] + '.py'
-            testWalker = AstWalker(snippetTest['inputCode'].split(linesep),
+            testWalker = AstWalker(snippetTest['inputCode'].split(self.__linesep_for_source),
                                    self.options)
             funcAst = parse(snippetTest['inputCode'])
             getattr(testWalker, snippetTest['visitor'])(funcAst.body[0])
+            testWalker.lines[:] = [line.replace(linesep, self.__linesep_for_source)  for line in testWalker.lines]
             self.assertEqual(testWalker.lines, snippetTest['expectedOutput'])
         self.options.filename = options_name
 
@@ -557,7 +567,7 @@ class TestDoxypypy(unittest.TestCase):
         # Output the modified source.
         return testWalker.getLines()
 
-    def compareAgainstGoldStandard(self, inFilename, encoding="ASCII"):
+    def compareAgainstGoldStandard(self, inFilename, encoding="ASCII", equalIndent=False):
         """
         Compare the results against expectations.
 
@@ -566,48 +576,66 @@ class TestDoxypypy(unittest.TestCase):
         """
         inFilenameBase = splitext(basename(inFilename))[0]
         fullPathNamespace = inFilenameBase.replace(sep, '.')
-        trials = (
-            ('.out', Namespace(
-                autobrief=True,
-                autocode=True,
-                debug=False,
-                fullPathNamespace=fullPathNamespace,
-                topLevelNamespace=inFilenameBase,
-                tablength=4,
-                filename=inFilename,
-                object_respect=False
-            )),
-            ('.outnc', Namespace(
-                autobrief=True,
-                autocode=False,
-                debug=False,
-                fullPathNamespace=fullPathNamespace,
-                topLevelNamespace=inFilenameBase,
-                tablength=4,
-                filename=inFilename,
-                object_respect=False
-            )),
-            ('.outnn', Namespace(
-                autobrief=True,
-                autocode=True,
-                debug=False,
-                fullPathNamespace=fullPathNamespace,
-                topLevelNamespace=None,
-                tablength=4,
-                filename=inFilename,
-                object_respect=False
-            )),
-            ('.outbare',  Namespace(
-                autobrief=False,
-                autocode=False,
-                debug=False,
-                fullPathNamespace=fullPathNamespace,
-                topLevelNamespace=None,
-                tablength=4,
-                filename=inFilename,
-                object_respect=False
-            ))
-        )
+        if not equalIndent:
+            trials = (
+                ('.out', Namespace(
+                    autobrief=True,
+                    autocode=True,
+                    debug=False,
+                    fullPathNamespace=fullPathNamespace,
+                    topLevelNamespace=inFilenameBase,
+                    tablength=4,
+                    filename=inFilename,
+                    object_respect=False,
+                    equalIndent=equalIndent
+                )),
+                ('.outnc', Namespace(
+                    autobrief=True,
+                    autocode=False,
+                    debug=False,
+                    fullPathNamespace=fullPathNamespace,
+                    topLevelNamespace=inFilenameBase,
+                    tablength=4,
+                    filename=inFilename,
+                    object_respect=False,
+                    equalIndent=equalIndent
+                )),
+                ('.outnn', Namespace(
+                    autobrief=True,
+                    autocode=True,
+                    debug=False,
+                    fullPathNamespace=fullPathNamespace,
+                    topLevelNamespace=None,
+                    tablength=4,
+                    filename=inFilename,
+                    object_respect=False,
+                    equalIndent=equalIndent
+                )),
+                ('.outbare',  Namespace(
+                    autobrief=False,
+                    autocode=False,
+                    debug=False,
+                    fullPathNamespace=fullPathNamespace,
+                    topLevelNamespace=None,
+                    tablength=4,
+                    filename=inFilename,
+                    object_respect=False,
+                    equalIndent=equalIndent
+                ))
+            )
+        else:
+            trials = (('.outeq',  Namespace(
+                    autobrief=True,
+                    autocode=True,
+                    debug=False,
+                    fullPathNamespace=fullPathNamespace,
+                    topLevelNamespace=None,
+                    tablength=4,
+                    filename=inFilename,
+                    object_respect=True,
+                    equalIndent=equalIndent
+                )),)
+                
         for options in trials:
             output = self.readAndParseFile(options[1], encoding=encoding)
             goldFilename = splitext(inFilename)[0] + options[0] + '.py'
@@ -710,9 +738,27 @@ class TestDoxypypy(unittest.TestCase):
         """
         sampleName = 'doxypypy/test/sample_utf32lebom.py'
         self.compareAgainstGoldStandard(sampleName, encoding="UTF-32")
+     
+    def test_rstProcessing(self):
+        """
+        Test the examples for rst styles.
+        """
+        sampleName = 'doxypypy/test/sample_rstexample.py'
+        self.compareAgainstGoldStandard(sampleName)
+    
+    def test_indentProcessing(self):
+        """
+        Test the examples with rst and indentation reduction.
+        """
+        sampleName = 'doxypypy/test/sample_rstexample.py'
+        self.compareAgainstGoldStandard(sampleName, equalIndent=True)
 
-
+        
 if __name__ == '__main__':
     # When executed from the command line, run all the tests via unittest.
+    # e.g. from root of this repository: (this makes relative module import resolving easier ...)
+    #   python -m unittest doxypypy.test.test_doxypypy
+    #   python -m unittest doxypypy.test.test_doxypypy.TestDoxypypy.test_sampleArgs -v --locals
+    # 
     from unittest import main
     main()
