@@ -12,6 +12,10 @@ from os import linesep, sep
 from os.path import basename, splitext
 from ast import parse
 from codecs import open as codecsOpen
+from sys import version_info
+
+from pytest import mark
+
 from ..doxypypy import AstWalker
 
 
@@ -661,6 +665,7 @@ class TestDoxypypy(unittest.TestCase):
         sampleName = 'doxypypy/test/sample_pep.py'
         self.compareAgainstGoldStandard(sampleName)
 
+    @mark.skipif(version_info < (3, 0), reason="different behavior for Python 2")
     def test_privacyProcessing(self):
         """
         Test an example with different combinations of public, protected, and private.
@@ -744,14 +749,16 @@ class TestDoxypypy(unittest.TestCase):
         """
         sampleName = 'doxypypy/test/sample_utf32lebom.py'
         self.compareAgainstGoldStandard(sampleName, encoding="UTF-32")
-     
+
+    @mark.skipif(version_info < (3, 0), reason="not supported in Python 2")
     def test_rstProcessing(self):
         """
         Test the examples for rst styles.
         """
         sampleName = 'doxypypy/test/sample_rstexample.py'
         self.compareAgainstGoldStandard(sampleName)
-    
+
+    @mark.skipif(version_info < (3, 0), reason="not supported in Python 2")
     def test_indentProcessing(self):
         """
         Test the examples with rst and indentation reduction.

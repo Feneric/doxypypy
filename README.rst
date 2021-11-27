@@ -150,6 +150,14 @@ or:
 
 with administrator privileges should do the trick.
 
+Many Linux distributions have packages for doxypypy, so if you are
+using Linux you may find it more convenient to use :code:`aptitude`,
+:code:`apt`, :code:`apt-get`, :code:`yum`, :code:`dnf`, etc. as
+appropriate for your system to install the version tested by the
+distribution maintainer. It will often be available as separate
+packages for both Python 3 and Python 2.
+
+
 Previewing doxypypy Output
 --------------------------
 

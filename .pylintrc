@@ -5,17 +5,25 @@ ignore=test
 max-line-length=120
 
 [DESIGN]
-max-branches=40
-max-locals=25
+max-branches=75
+max-locals=30
+max-module-lines=1500
 max-nested-blocks=12
-max-statements=120
+max-statements=235
 
 [MESSAGES CONTROL]
 disable=
+	arguments-differ,
 	bad-continuation,
 	broad-except,
+	consider-using-f-string,
+	consider-using-with,
 	invalid-name,
+	missing-super-argument,
+	no-member,
+	super-with-arguments,
 	undefined-loop-variable,
+	unspecified-encoding,
 	unused-argument,
 	unused-variable
 
