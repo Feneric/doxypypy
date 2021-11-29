@@ -766,6 +766,14 @@ class TestDoxypypy(unittest.TestCase):
         sampleName = 'doxypypy/test/sample_rstexample.py'
         self.compareAgainstGoldStandard(sampleName, equalIndent=True)
 
+    @mark.skipif(version_info < (3, 0), reason="not supported in Python 2")
+    def test_asyncProcessing(self):
+        """
+        Test the examples with async functions and methods.
+        """
+        sampleName = 'doxypypy/test/sample_async.py'
+        self.compareAgainstGoldStandard(sampleName)
+
         
 if __name__ == '__main__':
     # When executed from the command line, run all the tests via unittest.

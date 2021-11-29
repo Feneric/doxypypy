@@ -882,6 +882,7 @@ class AstWalker(NodeVisitor):
         self.generic_visit(node, containingNodes=containingNodes)
         # Remove the item we pushed onto the containing nodes hierarchy.
         containingNodes.pop()
+    visit_AsyncFunctionDef = visit_FunctionDef
 
     def visit_ClassDef(self, node, **kwargs):
         """

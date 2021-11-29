@@ -22,6 +22,9 @@ setup(
         'chardet'
     ],
     test_suite='doxypypy.test.test_doxypypy',
+    extras_require={
+        'testing': ['pytest', 'tox'],
+    },
     entry_points={
         'console_scripts': [
             'doxypypy = doxypypy.doxypypy:main'
