@@ -37,3 +37,5 @@ nosetests.xml
 # Mac OS X
 .DS_Store
 
+# Visual Studio code
+.vscode
