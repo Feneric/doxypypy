@@ -52,12 +52,14 @@ class SampleClass(object):
     Attributes:
         likes_spam: A boolean indicating if we like SPAM or not.
         eggs: An integer count of the eggs we have laid.
+        versionx: The version of eggs and ham.
     """
 
     def __init__(self, likes_spam=False):
         """Inits SampleClass with blah."""
         self.likes_spam = likes_spam
         self.eggs = 0
+        self.versionx = 1
 
     def public_method(self):
         """Performs operation blah."""

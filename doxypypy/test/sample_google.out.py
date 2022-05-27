@@ -63,11 +63,15 @@ class SampleClass():
     ## @property		eggs
     # An integer count of the eggs we have laid.
 
+    ## @property		versionx
+    # The version of eggs and ham.
+
     ## @brief Inits SampleClass with blah.
     # @namespace sample_google.SampleClass.__init__
     def __init__(self, likes_spam=False):
         self.likes_spam = likes_spam
         self.eggs = 0
+        self.versionx = 1
 
     ## @brief Performs operation blah.
     # @namespace sample_google.SampleClass.public_method
