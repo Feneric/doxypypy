@@ -56,7 +56,8 @@ class AstWalker(NodeVisitor):
     __indentRE = regexpCompile(r'^(\s*)\S')
     __newlineRE = regexpCompile(r'^#', MULTILINE)
     __blanklineRE = regexpCompile(r'^\s*$')
-    __docstrMarkerRE = regexpCompile(r"\s*([uUbB]*[rR]?(['\"]{3}))")
+    __docstrMarkerRE = regexpCompile(r"^\s*([uUbB]*[rR]?(['\"]{3}))|"
+                                     r"\s*(['\"]{3})\s*$")
     __docstrOneLineRE = regexpCompile(r"\s*[uUbB]*[rR]?(['\"]{3})(.+)\1")
 
     __implementsRE = regexpCompile(r"^(\s*)(?:zope\.)?(?:interface\.)?"
