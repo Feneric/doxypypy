@@ -1029,22 +1029,22 @@ def main():
         parser.add_argument(
             "-O", "--object-respect",
             action="store_true", dest="object_respect",
-            help="By default, doxypypy hides object class from class dependencies"
-                 "even if class inherits explictilty from objects (new-style class),"
+            help="By default, doxypypy hides object class from class dependencies "
+                 "even if class inherits explictilty from objects (new-style class), "
                  "this option disable this."
         )
         parser.add_argument(
             "-e", "--equalIndent",
             action="store_true", dest="equalIndent",
-            help="Make indention level of docstrings matching with their enclosing"
+            help="Make indention level of docstrings matching with their enclosing "
                  "definitions one."
         )
         parser.add_argument(
             "-k", "--keepDecorators",
             action="store_true", dest="keepDecorators",
-            help="Decorators are usually ignored by doxypypy and thus are before the"
-                 "doxygen docString output and not before it's definition string."
-                 "With this option decorators are kept before it's definition string"
+            help="Decorators are usually ignored by doxypypy and thus are before the "
+                 "doxygen docString output and not before it's definition string. "
+                 "With this option decorators are kept before it's definition string "
                  "(function or class names). But this requires dogygen 1.9 or higher."
         )
         group = parser.add_argument_group("Debug Options")
