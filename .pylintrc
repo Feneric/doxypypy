@@ -14,12 +14,10 @@ max-statements=235
 [MESSAGES CONTROL]
 disable=
 	arguments-differ,
-	bad-continuation,
 	broad-except,
 	consider-using-f-string,
 	consider-using-with,
 	invalid-name,
-	missing-super-argument,
 	no-member,
 	super-with-arguments,
 	undefined-loop-variable,

@@ -3,8 +3,9 @@
 """
 Tests the doxypypy filter.
 
-These tests may all be executed by running tox from the
+These tests may all be executed by running the command `tox` from the
 root level of the project.
+You can install tox with `pip install tox`
 """
 import unittest
 from argparse import Namespace
@@ -645,7 +646,7 @@ class TestDoxypypy(unittest.TestCase):
                     equalIndent=equalIndent,
                     keepDecorators=False
                 )),)
-                
+
         for options in trials:
             output = self.readAndParseFile(options[1], encoding=encoding)
             goldFilename = splitext(inFilename)[0] + options[0] + '.py'
@@ -663,6 +664,13 @@ class TestDoxypypy(unittest.TestCase):
         Test the basic example included in PEP 257.
         """
         sampleName = 'doxypypy/test/sample_pep.py'
+        self.compareAgainstGoldStandard(sampleName)
+
+    def test_code_indent(self):
+        """
+        Test the basic example included in PEP 257.
+        """
+        sampleName = 'doxypypy/test/sample_code_indent.py'
         self.compareAgainstGoldStandard(sampleName)
 
     @mark.skipif(version_info < (3, 0), reason="different behavior for Python 2")

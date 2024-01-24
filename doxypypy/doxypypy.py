@@ -173,9 +173,9 @@ class AstWalker(NodeVisitor):
                                 testLine += linesep + line
                                 testLine = testLine.strip()
                                 testLineNum += 1
-                    except (SyntaxError, RuntimeError):
-                        # This is definitely not code.
-                        lineOfCode = False
+                    except (SyntaxError, RuntimeError) as e:
+                        # If this is not an IndentationError, this is definitely not code.
+                        lineOfCode = isinstance(e, IndentationError)
                     except Exception:
                         # Other errors are ambiguous.
                         line, lines, lineNum = (yield)
